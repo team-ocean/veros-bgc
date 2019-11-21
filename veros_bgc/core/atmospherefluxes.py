@@ -3,7 +3,7 @@ Functions calculating atmosphere-ocean fluxes
 
 """
 from veros import veros_method, runtime_settings as rs
-from . import utilities
+from veros.core import utilities
 
 
 @veros_method

@@ -4,10 +4,10 @@ Contains veros methods for handling bio- and geochemistry
 """
 from collections import namedtuple
 
-from .. import veros_method
-from .. import time
-from . import diffusion, thermodynamics, utilities, isoneutral
-from ..variables import allocate
+from veros import veros_method
+from veros import time
+from veros.core import diffusion, thermodynamics, utilities, isoneutral
+from veros.variables import allocate
 
 
 @veros_method

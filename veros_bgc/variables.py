@@ -1,5 +1,7 @@
 from collections import OrderedDict
 
+from veros.variables import Variable, T_GRID, T_HOR, YT, TIMESTEPS
+
 
 VARIABLES = OrderedDict([])
 

@@ -1,7 +1,7 @@
 from loguru import logger
 
-from .diagnostic import VerosDiagnostic
-from .. import veros_method
+from veros.diagnostics.diagnostic import VerosDiagnostic
+from veros import veros_method
 
 
 class NPZDMonitor(VerosDiagnostic):
@@ -13,11 +13,11 @@ class NPZDMonitor(VerosDiagnostic):
     restart_attributes = []
     save_graph = False  #: Whether or not to save a graph of the selected dynamics
     graph_attr = {  #: Properties of the graph (graphviz)
-            'splines': 'ortho',
-            'center': 'true',
-            'nodesep': '0.05',
-            'node': 'square'
-        }
+        'splines': 'ortho',
+        'center': 'true',
+        'nodesep': '0.05',
+        'node': 'square'
+    }
 
     def __init__(self, setup):
         self.output_variables = []
@@ -121,7 +121,6 @@ class NPZDMonitor(VerosDiagnostic):
                       + vs.detritus[2:-2, 2:-2, :, vs.tau] * vs.redfield_ratio_CN\
                       + vs.zooplankton[2:-2, 2:-2, :, vs.tau] * vs.redfield_ratio_CN\
                       + vs.dic[2:-2, 2:-2, :, vs.tau]
-
 
         po4_total = np.sum(po4_sum * cell_volume)
         logger.warning(' total phosphorus: {}, relative change: {}'.format(po4_total, (po4_total - self.po4_total)/self.po4_total))

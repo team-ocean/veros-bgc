@@ -2,7 +2,8 @@
 Classes for npzd tracers
 """
 import numpy as np
-from .. import veros_method
+
+from veros import veros_method
 
 class NPZD_tracer(np.ndarray):
     """ Class for npzd tracers to store additional information about themselves.
@@ -55,10 +56,8 @@ class NPZD_tracer(np.ndarray):
         if light_attenuation is not None:
             obj.light_attenuation = light_attenuation
 
-
         obj.name = name
         obj.transport = transport
-
 
         return obj
 
@@ -71,7 +70,6 @@ class NPZD_tracer(np.ndarray):
         if hasattr(obj, "__dir__"):
             for attribute in (set(dir(obj)) - set(dir(self))):
                 setattr(self, attribute, getattr(obj, attribute))
-
 
 
 class Recyclable_tracer(NPZD_tracer):
@@ -115,7 +113,6 @@ class Recyclable_tracer(NPZD_tracer):
         return vs.bct * self.recycling_rate * self
 
 
-
 class Plankton(Recyclable_tracer):
     """ Class for plankton object, which is both recyclable and displays mortality
 
@@ -152,8 +149,6 @@ class Plankton(Recyclable_tracer):
     def __new__(cls, input_array, name, mortality_rate=0, **kwargs):
         obj = super().__new__(cls, input_array, name, **kwargs)
         obj.mortality_rate = mortality_rate
-
-
         return obj
 
     @veros_method(inline=True)
@@ -195,7 +190,6 @@ class Phytoplankton(Plankton):
 
         return obj
 
-
     @veros_method(inline=True)
     def potential_growth(self, vs, grid_light, light_attenuation):
         """ Light limited growth, not limited growth """
@@ -205,7 +199,6 @@ class Phytoplankton(Plankton):
         avej = self._avg_J(vs, f1, gd, grid_light, light_attenuation)  # light limited growth
 
         return jmax, avej
-
 
     @veros_method(inline=True)
     def _avg_J(self, vs, f1, gd, grid_light, light_attenuation):
@@ -304,14 +297,12 @@ class Zooplankton(Plankton):
         self._gmax = self.max_grazing * vs.bbio ** (vs.cbio *
                      np.minimum(self.maximum_growth_temperature, vs.temp[..., vs.tau]))
 
-
     @veros_method(inline=True)
     def mortality(self, vs):
         """
         Zooplankton is modelled with a quadratic mortality
         """
         return self.mortality_rate * self ** 2
-
 
     @veros_method(inline=True)
     def grazing(self, vs, tracers, flags):
@@ -343,14 +334,13 @@ class Zooplankton(Plankton):
 
         thetaZ = sum([pref_score * tracers[preference] for preference, pref_score
                       in self.grazing_preferences.items()])\
-                      + vs.saturation_constant_Z_grazing * vs.redfield_ratio_PN
+                 + vs.saturation_constant_Z_grazing * vs.redfield_ratio_PN
 
         ingestion = {preference: pref_score / thetaZ for preference, pref_score in self.grazing_preferences.items()}
 
         grazing = {preference: flags[preference] * flags[self.name] * self._gmax *
                    ingestion[preference] * tracers[preference] * self
                    for preference in ingestion}
-
 
         digestion = {preference: self.assimilation_efficiency * amount_grazed
                      for preference, amount_grazed in grazing.items()}

@@ -6,7 +6,8 @@ Rules should always take 3 arguments:
     2. Name of source tracer
     3. Name of sink tracer
 """
-from .. import veros_method
+from veros import veros_method
+
 from . import atmospherefluxes
 
 
