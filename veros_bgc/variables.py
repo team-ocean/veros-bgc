@@ -3,7 +3,7 @@ from collections import OrderedDict
 from veros.variables import Variable, T_GRID, T_HOR, YT, TIMESTEPS
 
 
-VARIABLES = OrderedDict([])
+MAIN_VARIABLES = OrderedDict([])
 
 CONDITIONAL_VARIABLES = OrderedDict([
     ('enable_npzd', OrderedDict([
@@ -47,28 +47,6 @@ CONDITIONAL_VARIABLES = OrderedDict([
             'Total excretion from zooplankton', T_GRID, 'mmol/m^3 / s',
             'Zooplankton grazing causes excretion. This stores the total excreted amount for all consumed tracers')),
     ])),
-    # ('enable_nitrogen', OrderedDict([
-    # ('no3', Variable(
-    #     'Nitrate concentration', T_GRID + TIMESTEPS, 'mmol/m^3?',
-    #     'Concentration of nitrate in grid box',
-    #     output=True
-    # )),
-    # ('dop', Variable(
-    #     'Dissolved organic phosphorus', T_GRID + TIMESTEPS, 'mmol/m^3?',
-    #     'Concentration of Dissolved organic phosphorus in grid box',
-    #     output=True
-    # )),
-    # ('don', Variable(
-    #     'Dissolved organic nitrogen', T_GRID + TIMESTEPS, 'mmol/m^3?',
-    #     'Concentration of dissolved organic nitrogen in grid box',
-    #     output=True
-    # )),
-    # ('diazotroph', Variable(
-    #     'Diazotroph concentration', T_GRID + TIMESTEPS, 'mmol/m^3?',
-    #     'Concentration of diazotrophs in grid box',
-    #     output=True
-    # )),
-    # ])),
     ('enable_carbon', OrderedDict([
         ('dic', Variable(
             'Dissolved Inorganic Carbon', T_GRID + TIMESTEPS, 'mmol/m^3',
@@ -106,12 +84,4 @@ CONDITIONAL_VARIABLES = OrderedDict([
         ('rcak', Variable('Calcite redistribution share', T_GRID, '1',
                           'Calcite is redistributed after production by dissolution varying by depth')),
     ])),
-    # ('enable_calcifiers', OrderedDict([
-    # ('coccolitophore', Variable(
-    #     'Coccolitophore concentration', T_GRID + TIMESTEPS, 'mmol/m^3',
-    #     '')),
-    # ('caco3', Variable(
-    #     'Calcite concentration', T_GRID + TIMESTEPS, 'mmol/m^3',
-    #     ''))
-    #     ])),
 ])

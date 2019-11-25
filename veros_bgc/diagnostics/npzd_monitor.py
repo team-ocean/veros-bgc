@@ -123,12 +123,12 @@ class NPZDMonitor(VerosDiagnostic):
                       + vs.dic[2:-2, 2:-2, :, vs.tau]
 
         po4_total = np.sum(po4_sum * cell_volume)
-        logger.warning(' total phosphorus: {}, relative change: {}'.format(po4_total, (po4_total - self.po4_total)/self.po4_total))
+        logger.diagnostic(' total phosphorus: {}, relative change: {}'.format(po4_total, (po4_total - self.po4_total)/self.po4_total))
         self.po4_total = po4_total[...]
 
         if vs.enable_carbon:
             dic_total = np.sum(dic_sum * cell_volume)
-            logger.warning(' total DIC: {}, relative change: {}'.format(dic_total, (dic_total - self.dic_total)/self.dic_total))
+            logger.diagnostic(' total DIC: {}, relative change: {}'.format(dic_total, (dic_total - self.dic_total)/self.dic_total))
             self.dic_total = dic_total.copy()
 
         for var in self.output_variables:
@@ -152,16 +152,16 @@ class NPZDMonitor(VerosDiagnostic):
             else:
                 grazing_total = 0
 
-            logger.warning(' total recycled {}: {}'.format(var, recycled_total))
-            logger.warning(' total mortality {}: {}'.format(var, mortality_total))
-            logger.warning(' total npp {}: {}'.format(var, npp_total))
-            logger.warning(' total grazed {}: {}'.format(var, grazing_total))
+            logger.diagnostic(' total recycled {}: {}'.format(var, recycled_total))
+            logger.diagnostic(' total mortality {}: {}'.format(var, mortality_total))
+            logger.diagnostic(' total npp {}: {}'.format(var, npp_total))
+            logger.diagnostic(' total grazed {}: {}'.format(var, grazing_total))
 
         for var in self.surface_out:
-            logger.warning(' mean {} surface concentration: {} mmol/m^3'.format(var, vs.npzd_tracers[var][vs.maskT[:, :, -1]].mean()))
+            logger.diagnostic(' mean {} surface concentration: {} mmol/m^3'.format(var, vs.npzd_tracers[var][vs.maskT[:, :, -1]].mean()))
 
         for var in self.bottom_out:
-            logger.warning(' mean {} bottom concentration: {} mmol/m^3'.format(var, vs.npzd_tracers[var][vs.bottom_mask].mean()))
+            logger.diagnostic(' mean {} bottom concentration: {} mmol/m^3'.format(var, vs.npzd_tracers[var][vs.bottom_mask].mean()))
 
     def read_restart(self, vs):
         pass

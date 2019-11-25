@@ -627,9 +627,11 @@ def setup_carbon_npzd_rules(vs):
     ])
 
 
-@veros_method(inline=True)
+@veros_method
 def setupNPZD(vs):
     """Taking veros variables and packaging them up into iterables"""
+    if not vs.enable_npzd:
+        return
 
     setup_basic_npzd_rules(vs)
 
@@ -685,6 +687,8 @@ def npzd(vs):
         \dfrac{\partial C_i}{\partial t} = T + S
     \end{equation}
     """
+    if not vs.enable_npzd:
+        return
 
     # TODO: Refactor transportation code to be defined only once and also used by thermodynamics
     # TODO: Dissipation on W-grid if necessary

@@ -4,7 +4,6 @@ from veros.settings import Setting
 
 
 SETTINGS = OrderedDict([
-    # NPZD
     ('enable_npzd', Setting(False, bool, '')),
 
     # I don't like keeping these in settings, but I can't make them in variables
