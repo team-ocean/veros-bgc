@@ -3,7 +3,7 @@
 A biogeochemistry module for Veros
 ==================================
 
-Veros-BGC adds a full-fledged NPZD (Nitrogen-Phosphate-Zooplankton-Detritus) loop on top of the `Veros <https://readthedocs.io/veros>`_ ocean model, with support for custom tracers and additional rules.
+Veros-BGC adds a full-fledged NPZD (Nutrients-Phytoplankton-Zooplankton-Detritus) loop on top of the `Veros <https://readthedocs.io/veros>`_ ocean model, with support for custom tracers and additional rules.
 
 Veros-BGC is based on `MOBI <http://people.oregonstate.edu/~schmita2/Models/MOBI/index.html>`_ by `Andreas Schmittner <http://people.oregonstate.edu/~schmita2/>`_, Oregon State University.
 

@@ -95,7 +95,6 @@ def biogeochemistry(vs):
         if hasattr(tracer, 'potential_growth'):
             jmax[tracer.name], avej[tracer.name] = tracer.potential_growth(vs, grid_light, light_attenuation)
 
-
         # Methods for internal use may need an update
         if hasattr(tracer, 'update_internal'):
             tracer.update_internal(vs)
@@ -755,19 +754,16 @@ def npzd(vs):
         """
         Isopycnal diffusion
         """
-
         if vs.enable_neutral_diffusion:
             dtracer_iso = np.zeros_like(tracer_data[..., 0])
 
-            # NOTE isoneutral_diffusion_decoupled is a temporary solution to splitting the explicit
-            # dependence on time and salinity from the function isoneutral_diffusion
-            isoneutral.isoneutral_diffusion_decoupled(vs, tracer_data, dtracer_iso,
-                                                      iso=True, skew=False)
+            isoneutral.isoneutral_diffusion_tracer(vs, tracer_data, dtracer_iso,
+                                                   iso=True, skew=False)
 
             if vs.enable_skew_diffusion:
                 dtracer_skew = np.zeros_like(tracer_data[..., 0])
-                isoneutral.isoneutral_diffusion_decoupled(vs, tracer_data, dtracer_skew,
-                                                          iso=False, skew=True)
+                isoneutral.isoneutral_diffusion_tracer(vs, tracer_data, dtracer_skew,
+                                                       iso=False, skew=True)
         """
         Vertical mixing of tracers
         """
