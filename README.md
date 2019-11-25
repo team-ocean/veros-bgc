@@ -1,3 +1,5 @@
+[![Documentation Status](https://readthedocs.org/projects/veros-bgc/badge/?version=latest)](https://veros-bgc.readthedocs.io/en/latest/?badge=latest)
+
 # Veros-BGC
 A biogeochemistry plugin for Veros, based on MOBI.
 
