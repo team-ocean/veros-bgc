@@ -25,7 +25,7 @@ Operating System :: MacOS
 """
 
 INSTALL_REQUIRES = [
-    'veros',
+    'veros>=0.2.1',
     'graphviz'
 ]
 
@@ -49,5 +49,11 @@ setup(
     cmdclass=versioneer.get_cmdclass(),
     packages=find_packages(),
     install_requires=INSTALL_REQUIRES,
-    classifiers=[c for c in CLASSIFIERS.split('\n') if c]
+    entry_points={
+        'veros.setup_dirs': [
+            'bgc = veros_bgc.setup'
+        ]
+    },
+    classifiers=[c for c in CLASSIFIERS.split('\n') if c],
+    zip_safe=False,
 )
