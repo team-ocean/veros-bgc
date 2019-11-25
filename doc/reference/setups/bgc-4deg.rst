@@ -1,4 +1,4 @@
 Global four-degree model with BioGeoChemistry
 ---------------------------------------------
 
-.. autoclass:: veros.setup.bgc_global_4deg.GlobalFourDegreeBGC
+.. autoclass:: veros_bgc.setup.bgc_global_4deg.GlobalFourDegreeBGC

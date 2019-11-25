@@ -1,7 +1,5 @@
-.. biogeochemistry:
-
-Biogeochemistry
-===============
+Custom rules and tracers
+========================
 
 The biogeochemistry module for Veros is designed for allowing construction of user defined ecosystems.
 Base systems are made available for a basic Nutrients-Plankton-Zooplankton-Detritus, NPZD, system,
@@ -71,29 +69,29 @@ and phytoplankton can be done like
 Base tracer
 ###########
 
-.. autoclass:: veros.core.npzd_tracers.NPZD_tracer
+.. autoclass:: veros_bgc.core.npzd_tracers.NPZD_tracer
 
 Recyclable tracer
 #################
 
-.. autoclass:: veros.core.npzd_tracers.Recyclable_tracer
+.. autoclass:: veros_bgc.core.npzd_tracers.Recyclable_tracer
 
 Plankton
 ########
 
-.. autoclass:: veros.core.npzd_tracers.Plankton
+.. autoclass:: veros_bgc.core.npzd_tracers.Plankton
 
 
 Phytoplankton
 #############
 
-.. autoclass:: veros.core.npzd_tracers.Phytoplankton
+.. autoclass:: veros_bgc.core.npzd_tracers.Phytoplankton
 
 
 Zooplankton
 ###########
 
-.. autoclass:: veros.core.npzd_tracers.Zooplankton
+.. autoclass:: veros_bgc.core.npzd_tracers.Zooplankton
 
 
 Extending tracers

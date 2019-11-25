@@ -1,0 +1,502 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Available settings &mdash; Veros-BGC 0+untagged.3.gb2fcfb2.dirty documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../_static/jquery.js"></script>
+        <script type="text/javascript" src="../_static/underscore.js"></script>
+        <script type="text/javascript" src="../_static/doctools.js"></script>
+        <script type="text/javascript" src="../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Available variables" href="variables.html" />
+    <link rel="prev" title="Global four-degree model with BioGeoChemistry" href="setups/bgc-4deg.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> Veros-BGC
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0+untagged.3.gb2fcfb2.dirty
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Usage</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../quickstart/user-guide.html">Basic usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../quickstart/developer-guide.html">Custom rules and tracers</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Reference</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="setup-gallery.html">Setup gallery</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Available settings</a></li>
+<li class="toctree-l1"><a class="reference internal" href="variables.html">Available variables</a></li>
+<li class="toctree-l1"><a class="reference internal" href="variables.html#conditional-variables">Conditional variables</a></li>
+<li class="toctree-l1"><a class="reference internal" href="diagnostics.html">Biogeochemistry Diagnostic</a></li>
+</ul>
+<p class="caption"><span class="caption-text">More Information</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference external" href="https://readthedocs.io/veros">Veros core documentation</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://github.com/team-ocean/veros-bgc">Visit us on GitHub</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Veros-BGC</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+      <li>Available settings</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/reference/settings.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="available-settings">
+<h1>Available settings<a class="headerlink" href="#available-settings" title="Permalink to this headline">¶</a></h1>
+<span class="target" id="setting-enable-npzd"></span><dl class="attribute">
+<dt>
+<code class="descname">VerosState.enable_npzd = False</code></dt>
+<dd></dd></dl>
+
+<span class="target" id="setting-recycled"></span><dl class="attribute">
+<dt>
+<code class="descname">VerosState.recycled = {}</code></dt>
+<dd><p>Amount of recycled material [mmol/m^3] for NPZD tracers</p>
+</dd></dl>
+
+<span class="target" id="setting-mortality"></span><dl class="attribute">
+<dt>
+<code class="descname">VerosState.mortality = {}</code></dt>
+<dd><p>Amount of dead plankton [mmol/m^3] by species</p>
+</dd></dl>
+
+<span class="target" id="setting-net-primary-production"></span><dl class="attribute">
+<dt>
+<code class="descname">VerosState.net_primary_production = {}</code></dt>
+<dd><p>Primary production for each producing plankton species</p>
+</dd></dl>
+
+<span class="target" id="setting-plankton-growth-functions"></span><dl class="attribute">
+<dt>
+<code class="descname">VerosState.plankton_growth_functions = {}</code></dt>
+<dd><p>Collection of functions calculating growth for plankton by species</p>
+</dd></dl>
+
+<span class="target" id="setting-limiting-functions"></span><dl class="attribute">
+<dt>
+<code class="descname">VerosState.limiting_functions = {}</code></dt>
+<dd><p>Collection of functions calculating limits to growth for plankton by species</p>
+</dd></dl>
+
+<span class="target" id="setting-npzd-tracers"></span><dl class="attribute">
+<dt>
+<code class="descname">VerosState.npzd_tracers = {}</code></dt>
+<dd><p>Dictionary whose values point to veros variables for npzd tracers</p>
+</dd></dl>
+
+<span class="target" id="setting-npzd-rules"></span><dl class="attribute">
+<dt>
+<code class="descname">VerosState.npzd_rules = []</code></dt>
+<dd><p>List of active rules in primary loop of BGC</p>
+</dd></dl>
+
+<span class="target" id="setting-npzd-pre-rules"></span><dl class="attribute">
+<dt>
+<code class="descname">VerosState.npzd_pre_rules = []</code></dt>
+<dd><p>List of rules to executed in the pre loop of BGC</p>
+</dd></dl>
+
+<span class="target" id="setting-npzd-post-rules"></span><dl class="attribute">
+<dt>
+<code class="descname">VerosState.npzd_post_rules = []</code></dt>
+<dd><p>Rules to be executed after primary bio loop</p>
+</dd></dl>
+
+<span class="target" id="setting-npzd-available-rules"></span><dl class="attribute">
+<dt>
+<code class="descname">VerosState.npzd_available_rules = {}</code></dt>
+<dd><p>Every rule created is stored here, can be individual rules or collections of rules</p>
+</dd></dl>
+
+<span class="target" id="setting-npzd-selected-rule-names"></span><dl class="attribute">
+<dt>
+<code class="descname">VerosState.npzd_selected_rule_names = []</code></dt>
+<dd><p>name of selected rules</p>
+</dd></dl>
+
+<span class="target" id="setting-npzd-export"></span><dl class="attribute">
+<dt>
+<code class="descname">VerosState.npzd_export = {}</code></dt>
+<dd><p>Exported material from npzd tracers by sinking</p>
+</dd></dl>
+
+<span class="target" id="setting-npzd-import"></span><dl class="attribute">
+<dt>
+<code class="descname">VerosState.npzd_import = {}</code></dt>
+<dd><p>Imported material from npzd tracers from layer above. Takes same value as npzd_export scaled by level differences. Sea surface is 0</p>
+</dd></dl>
+
+<span class="target" id="setting-zprefs"></span><dl class="attribute">
+<dt>
+<code class="descname">VerosState.zprefs = {}</code></dt>
+<dd><p>Preference for zooplankton to graze on named tracers</p>
+</dd></dl>
+
+<span class="target" id="setting-npzd-transported-tracers"></span><dl class="attribute">
+<dt>
+<code class="descname">VerosState.npzd_transported_tracers = []</code></dt>
+<dd><p>List of NPZD tracers which are transported</p>
+</dd></dl>
+
+<span class="target" id="setting-npzd-advection-derivatives"></span><dl class="attribute">
+<dt>
+<code class="descname">VerosState.npzd_advection_derivatives = {}</code></dt>
+<dd><p>Stores derivates of advection term for tracers</p>
+</dd></dl>
+
+<span class="target" id="setting-temporary-tracers"></span><dl class="attribute">
+<dt>
+<code class="descname">VerosState.temporary_tracers = {}</code></dt>
+<dd><p>Temporary copy of npzd_tracers for biogeochemistry loop</p>
+</dd></dl>
+
+<span class="target" id="setting-light-attenuation-phytoplankton"></span><dl class="attribute">
+<dt>
+<code class="descname">VerosState.light_attenuation_phytoplankton = 0.047</code></dt>
+<dd><p>Light attenuation of phytoplankton</p>
+</dd></dl>
+
+<span class="target" id="setting-light-attenuation-water"></span><dl class="attribute">
+<dt>
+<code class="descname">VerosState.light_attenuation_water = 0.04</code></dt>
+<dd><p>Light attenuation of water [1/m]</p>
+</dd></dl>
+
+<span class="target" id="setting-light-attenuation-ice"></span><dl class="attribute">
+<dt>
+<code class="descname">VerosState.light_attenuation_ice = 5.0</code></dt>
+<dd><p>Light attenuation of ice [1/m]</p>
+</dd></dl>
+
+<span class="target" id="setting-remineralization-rate-detritus"></span><dl class="attribute">
+<dt>
+<code class="descname">VerosState.remineralization_rate_detritus = 0</code></dt>
+<dd><p>Remineralization rate of detritus [1/sec]</p>
+</dd></dl>
+
+<span class="target" id="setting-bbio"></span><dl class="attribute">
+<dt>
+<code class="descname">VerosState.bbio = 0</code></dt>
+<dd><p>the b in b ** (c*T)</p>
+</dd></dl>
+
+<span class="target" id="setting-cbio"></span><dl class="attribute">
+<dt>
+<code class="descname">VerosState.cbio = 0</code></dt>
+<dd><p>the c in b ** (c*T)</p>
+</dd></dl>
+
+<span class="target" id="setting-maximum-growth-rate-phyto"></span><dl class="attribute">
+<dt>
+<code class="descname">VerosState.maximum_growth_rate_phyto = 0.0</code></dt>
+<dd><p>Maximum growth rate parameter for phytoplankton in [1/sec]</p>
+</dd></dl>
+
+<span class="target" id="setting-maximum-grazing-rate"></span><dl class="attribute">
+<dt>
+<code class="descname">VerosState.maximum_grazing_rate = 0</code></dt>
+<dd><p>Maximum grazing rate at 0 deg C [1/sec]</p>
+</dd></dl>
+
+<span class="target" id="setting-fast-recycling-rate-phytoplankton"></span><dl class="attribute">
+<dt>
+<code class="descname">VerosState.fast_recycling_rate_phytoplankton = 0</code></dt>
+<dd><p>Fast-recycling mortality rate of phytoplankton [1/sec]</p>
+</dd></dl>
+
+<span class="target" id="setting-saturation-constant-n"></span><dl class="attribute">
+<dt>
+<code class="descname">VerosState.saturation_constant_N = 0.7</code></dt>
+<dd><p>Half saturation constant for N uptake [mmol N / m^3]</p>
+</dd></dl>
+
+<span class="target" id="setting-saturation-constant-z-grazing"></span><dl class="attribute">
+<dt>
+<code class="descname">VerosState.saturation_constant_Z_grazing = 0.15</code></dt>
+<dd><p>Half saturation constant for Z grazing [mmol/m^3]</p>
+</dd></dl>
+
+<span class="target" id="setting-specific-mortality-phytoplankton"></span><dl class="attribute">
+<dt>
+<code class="descname">VerosState.specific_mortality_phytoplankton = 0</code></dt>
+<dd><p>Specific mortality rate of phytoplankton</p>
+</dd></dl>
+
+<span class="target" id="setting-quadric-mortality-zooplankton"></span><dl class="attribute">
+<dt>
+<code class="descname">VerosState.quadric_mortality_zooplankton = 0</code></dt>
+<dd><p>Quadric mortality rate of zooplankton [1/ (mmol N ^2 s)]</p>
+</dd></dl>
+
+<span class="target" id="setting-assimilation-efficiency"></span><dl class="attribute">
+<dt>
+<code class="descname">VerosState.assimilation_efficiency = 0</code></dt>
+<dd><p>Effiency with which ingested prey is converted growth in zooplankton, range: [0,1]</p>
+</dd></dl>
+
+<span class="target" id="setting-zooplankton-growth-efficiency"></span><dl class="attribute">
+<dt>
+<code class="descname">VerosState.zooplankton_growth_efficiency = 0</code></dt>
+<dd><p>Zooplankton growth efficiency, range: [0,1]</p>
+</dd></dl>
+
+<span class="target" id="setting-wd0"></span><dl class="attribute">
+<dt>
+<code class="descname">VerosState.wd0 = 0.0</code></dt>
+<dd><p>Sinking speed of detritus at surface [m/s]</p>
+</dd></dl>
+
+<span class="target" id="setting-mwz"></span><dl class="attribute">
+<dt>
+<code class="descname">VerosState.mwz = 1000</code></dt>
+<dd><p>Depth below which sinking speed of detritus remains constant [m]</p>
+</dd></dl>
+
+<span class="target" id="setting-mw"></span><dl class="attribute">
+<dt>
+<code class="descname">VerosState.mw = 2.3148148148148148e-07</code></dt>
+<dd><p>Increase in sinking speed with depth [1/sec]</p>
+</dd></dl>
+
+<span class="target" id="setting-zprefp"></span><dl class="attribute">
+<dt>
+<code class="descname">VerosState.zprefP = 1</code></dt>
+<dd><p>Zooplankton preference for grazing on Phytoplankton</p>
+</dd></dl>
+
+<span class="target" id="setting-zprefz"></span><dl class="attribute">
+<dt>
+<code class="descname">VerosState.zprefZ = 1</code></dt>
+<dd><p>Zooplankton preference for grazing on other zooplankton</p>
+</dd></dl>
+
+<span class="target" id="setting-zprefdet"></span><dl class="attribute">
+<dt>
+<code class="descname">VerosState.zprefDet = 1</code></dt>
+<dd><p>Zooplankton preference for grazing on detritus</p>
+</dd></dl>
+
+<span class="target" id="setting-redfield-ratio-pn"></span><dl class="attribute">
+<dt>
+<code class="descname">VerosState.redfield_ratio_PN = 0.0625</code></dt>
+<dd><p>Refield ratio for P/N</p>
+</dd></dl>
+
+<span class="target" id="setting-redfield-ratio-cp"></span><dl class="attribute">
+<dt>
+<code class="descname">VerosState.redfield_ratio_CP = 113.6</code></dt>
+<dd><p>Refield ratio for C/P</p>
+</dd></dl>
+
+<span class="target" id="setting-redfield-ratio-on"></span><dl class="attribute">
+<dt>
+<code class="descname">VerosState.redfield_ratio_ON = 10.6</code></dt>
+<dd><p>Redfield ratio for O/N</p>
+</dd></dl>
+
+<span class="target" id="setting-redfield-ratio-cn"></span><dl class="attribute">
+<dt>
+<code class="descname">VerosState.redfield_ratio_CN = 7.1</code></dt>
+<dd><p>Redfield ratio for C/N</p>
+</dd></dl>
+
+<span class="target" id="setting-trcmin"></span><dl class="attribute">
+<dt>
+<code class="descname">VerosState.trcmin = 1e-13</code></dt>
+<dd><p>Minimum npzd tracer value</p>
+</dd></dl>
+
+<span class="target" id="setting-u1-min"></span><dl class="attribute">
+<dt>
+<code class="descname">VerosState.u1_min = 1e-06</code></dt>
+<dd><p>Minimum u1 value for calculating avg J</p>
+</dd></dl>
+
+<span class="target" id="setting-zooplankton-max-growth-temp"></span><dl class="attribute">
+<dt>
+<code class="descname">VerosState.zooplankton_max_growth_temp = 20.0</code></dt>
+<dd><p>Temperature (C) for which zooplankton growth rate no longer grows with temperature</p>
+</dd></dl>
+
+<span class="target" id="setting-capr"></span><dl class="attribute">
+<dt>
+<code class="descname">VerosState.capr = 0.022</code></dt>
+<dd><p>Carbonate to carbon production ratio</p>
+</dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="variables.html" class="btn btn-neutral float-right" title="Available variables" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="setups/bgc-4deg.html" class="btn btn-neutral float-left" title="Global four-degree model with BioGeoChemistry" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2017-2019, The Veros Team, NBI Copenhagen
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

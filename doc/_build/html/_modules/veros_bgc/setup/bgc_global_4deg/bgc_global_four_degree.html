@@ -1,0 +1,501 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>veros_bgc.setup.bgc_global_4deg.bgc_global_four_degree &mdash; Veros-BGC 0+untagged.3.gb2fcfb2.dirty documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../../../../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+        <script type="text/javascript" src="../../../../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../../../../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../../index.html" class="icon icon-home"> Veros-BGC
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0+untagged.3.gb2fcfb2.dirty
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Usage</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../quickstart/user-guide.html">Basic usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../quickstart/developer-guide.html">Custom rules and tracers</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../reference/setup-gallery.html">Setup gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../reference/settings.html">Available settings</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../reference/variables.html">Available variables</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../reference/diagnostics.html">Biogeochemistry diagnostic</a></li>
+</ul>
+<p class="caption"><span class="caption-text">More Information</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference external" href="https://readthedocs.io/veros">Veros core documentation</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://github.com/team-ocean/veros-bgc">Visit us on GitHub</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">Veros-BGC</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../../../index.html">Module code</a> &raquo;</li>
+        
+      <li>veros_bgc.setup.bgc_global_4deg.bgc_global_four_degree</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for veros_bgc.setup.bgc_global_4deg.bgc_global_four_degree</h1><div class="highlight"><pre>
+<span></span><span class="ch">#!/usr/bin/env python</span>
+
+<span class="kn">import</span> <span class="nn">os</span>
+
+<span class="kn">import</span> <span class="nn">h5netcdf</span>
+<span class="kn">import</span> <span class="nn">ruamel.yaml</span> <span class="k">as</span> <span class="nn">yaml</span>
+
+<span class="kn">from</span> <span class="nn">veros</span> <span class="k">import</span> <span class="n">VerosSetup</span><span class="p">,</span> <span class="n">veros_method</span><span class="p">,</span> <span class="n">distributed</span>
+<span class="kn">from</span> <span class="nn">veros.variables</span> <span class="k">import</span> <span class="n">Variable</span>
+<span class="kn">import</span> <span class="nn">veros.tools</span>
+
+<span class="kn">import</span> <span class="nn">veros_bgc</span>
+
+<span class="n">BASE_PATH</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">realpath</span><span class="p">(</span><span class="vm">__file__</span><span class="p">))</span>
+<span class="n">DATA_FILES</span> <span class="o">=</span> <span class="n">veros</span><span class="o">.</span><span class="n">tools</span><span class="o">.</span><span class="n">get_assets</span><span class="p">(</span>
+    <span class="s1">&#39;global_4deg&#39;</span><span class="p">,</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">BASE_PATH</span><span class="p">,</span> <span class="s1">&#39;assets.yml&#39;</span><span class="p">)</span>
+<span class="p">)</span>
+
+
+<div class="viewcode-block" id="GlobalFourDegreeBGC"><a class="viewcode-back" href="../../../../reference/setups/bgc-4deg.html#veros_bgc.setup.bgc_global_4deg.GlobalFourDegreeBGC">[docs]</a><span class="k">class</span> <span class="nc">GlobalFourDegreeBGC</span><span class="p">(</span><span class="n">VerosSetup</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Global 4 degree model with 15 vertical levels and biogeochemistry.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">__veros_plugins__</span> <span class="o">=</span> <span class="p">(</span><span class="n">veros_bgc</span><span class="p">,)</span>
+
+    <span class="nd">@veros_method</span>
+    <span class="k">def</span> <span class="nf">set_parameter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">vs</span><span class="p">):</span>
+        <span class="n">vs</span><span class="o">.</span><span class="n">identifier</span> <span class="o">=</span> <span class="s1">&#39;4deg&#39;</span>
+
+        <span class="n">vs</span><span class="o">.</span><span class="n">nx</span><span class="p">,</span> <span class="n">vs</span><span class="o">.</span><span class="n">ny</span><span class="p">,</span> <span class="n">vs</span><span class="o">.</span><span class="n">nz</span> <span class="o">=</span> <span class="mi">90</span><span class="p">,</span> <span class="mi">40</span><span class="p">,</span> <span class="mi">15</span>
+        <span class="n">vs</span><span class="o">.</span><span class="n">dt_mom</span> <span class="o">=</span> <span class="mf">1800.0</span>
+        <span class="n">vs</span><span class="o">.</span><span class="n">dt_tracer</span> <span class="o">=</span> <span class="mf">86400.0</span>
+        <span class="n">vs</span><span class="o">.</span><span class="n">dt_bio</span> <span class="o">=</span> <span class="n">vs</span><span class="o">.</span><span class="n">dt_tracer</span> <span class="o">//</span> <span class="mi">4</span>
+        <span class="n">vs</span><span class="o">.</span><span class="n">runlen</span> <span class="o">=</span> <span class="mf">0.</span>
+
+        <span class="n">vs</span><span class="o">.</span><span class="n">trcmin</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">vs</span><span class="o">.</span><span class="n">enable_npzd</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="n">vs</span><span class="o">.</span><span class="n">enable_carbon</span> <span class="o">=</span> <span class="kc">True</span>
+
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">BASE_PATH</span><span class="p">,</span> <span class="s1">&#39;npzd.yml&#39;</span><span class="p">))</span> <span class="k">as</span> <span class="n">yaml_file</span><span class="p">:</span>
+            <span class="n">cfg</span> <span class="o">=</span> <span class="n">yaml</span><span class="o">.</span><span class="n">safe_load</span><span class="p">(</span><span class="n">yaml_file</span><span class="p">)[</span><span class="s1">&#39;npzd&#39;</span><span class="p">]</span>
+            <span class="n">vs</span><span class="o">.</span><span class="n">npzd_selected_rules</span> <span class="o">=</span> <span class="n">cfg</span><span class="p">[</span><span class="s1">&#39;selected_rules&#39;</span><span class="p">]</span>
+
+        <span class="n">vs</span><span class="o">.</span><span class="n">remineralization_rate_detritus</span> <span class="o">=</span> <span class="mf">0.09</span> <span class="o">/</span> <span class="mi">86400</span>
+        <span class="n">vs</span><span class="o">.</span><span class="n">bbio</span> <span class="o">=</span> <span class="mf">1.038</span>
+        <span class="n">vs</span><span class="o">.</span><span class="n">cbio</span> <span class="o">=</span> <span class="mf">1.0</span>
+        <span class="n">vs</span><span class="o">.</span><span class="n">maximum_growth_rate_phyto</span> <span class="o">=</span> <span class="mf">0.23</span> <span class="o">/</span> <span class="mi">86400</span>
+        <span class="n">vs</span><span class="o">.</span><span class="n">maximum_grazing_rate</span> <span class="o">=</span> <span class="mf">0.13</span> <span class="o">/</span> <span class="mi">86400</span>
+        <span class="n">vs</span><span class="o">.</span><span class="n">fast_recycling_rate_phytoplankton</span> <span class="o">=</span> <span class="mf">0.025</span> <span class="o">/</span> <span class="mi">86400</span>
+        <span class="n">vs</span><span class="o">.</span><span class="n">specific_mortality_phytoplankton</span> <span class="o">=</span> <span class="mf">0.035</span> <span class="o">/</span> <span class="mi">86400</span>
+        <span class="n">vs</span><span class="o">.</span><span class="n">quadric_mortality_zooplankton</span> <span class="o">=</span> <span class="mf">0.06</span> <span class="o">/</span> <span class="mi">86400</span>
+        <span class="n">vs</span><span class="o">.</span><span class="n">zooplankton_growth_efficiency</span> <span class="o">=</span> <span class="mf">0.60</span>
+        <span class="n">vs</span><span class="o">.</span><span class="n">assimilation_efficiency</span> <span class="o">=</span> <span class="mf">0.5</span>
+        <span class="n">vs</span><span class="o">.</span><span class="n">wd0</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">/</span> <span class="mi">86400</span>
+        <span class="n">vs</span><span class="o">.</span><span class="n">mwz</span> <span class="o">=</span> <span class="mi">1000</span>
+        <span class="n">vs</span><span class="o">.</span><span class="n">mw</span> <span class="o">=</span> <span class="mf">0.02</span> <span class="o">/</span> <span class="mi">86400</span>
+        <span class="n">vs</span><span class="o">.</span><span class="n">dcaco3</span> <span class="o">=</span> <span class="mi">2500</span>
+
+        <span class="n">vs</span><span class="o">.</span><span class="n">coord_degree</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="n">vs</span><span class="o">.</span><span class="n">enable_cyclic_x</span> <span class="o">=</span> <span class="kc">True</span>
+
+        <span class="n">vs</span><span class="o">.</span><span class="n">congr_epsilon</span> <span class="o">=</span> <span class="mf">1e-8</span>
+        <span class="n">vs</span><span class="o">.</span><span class="n">congr_max_iterations</span> <span class="o">=</span> <span class="mi">20000</span>
+
+        <span class="n">vs</span><span class="o">.</span><span class="n">enable_neutral_diffusion</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="n">vs</span><span class="o">.</span><span class="n">K_iso_0</span> <span class="o">=</span> <span class="mf">1000.0</span>
+        <span class="n">vs</span><span class="o">.</span><span class="n">K_iso_steep</span> <span class="o">=</span> <span class="mf">500.0</span>
+        <span class="n">vs</span><span class="o">.</span><span class="n">iso_dslope</span> <span class="o">=</span> <span class="mf">0.001</span>
+        <span class="n">vs</span><span class="o">.</span><span class="n">iso_slopec</span> <span class="o">=</span> <span class="mf">0.001</span>
+        <span class="n">vs</span><span class="o">.</span><span class="n">enable_skew_diffusion</span> <span class="o">=</span> <span class="kc">True</span>
+
+        <span class="n">vs</span><span class="o">.</span><span class="n">enable_hor_friction</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="n">vs</span><span class="o">.</span><span class="n">A_h</span> <span class="o">=</span> <span class="p">(</span><span class="mi">4</span> <span class="o">*</span> <span class="n">vs</span><span class="o">.</span><span class="n">degtom</span><span class="p">)</span><span class="o">**</span><span class="mi">3</span> <span class="o">*</span> <span class="mf">2e-11</span>
+        <span class="n">vs</span><span class="o">.</span><span class="n">enable_hor_friction_cos_scaling</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="n">vs</span><span class="o">.</span><span class="n">hor_friction_cosPower</span> <span class="o">=</span> <span class="mi">1</span>
+
+        <span class="n">vs</span><span class="o">.</span><span class="n">enable_implicit_vert_friction</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="n">vs</span><span class="o">.</span><span class="n">enable_tke</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="n">vs</span><span class="o">.</span><span class="n">c_k</span> <span class="o">=</span> <span class="mf">0.1</span>
+        <span class="n">vs</span><span class="o">.</span><span class="n">c_eps</span> <span class="o">=</span> <span class="mf">0.7</span>
+        <span class="n">vs</span><span class="o">.</span><span class="n">alpha_tke</span> <span class="o">=</span> <span class="mf">30.0</span>
+        <span class="n">vs</span><span class="o">.</span><span class="n">mxl_min</span> <span class="o">=</span> <span class="mf">1e-8</span>
+        <span class="n">vs</span><span class="o">.</span><span class="n">tke_mxl_choice</span> <span class="o">=</span> <span class="mi">2</span>
+        <span class="n">vs</span><span class="o">.</span><span class="n">kappaM_min</span> <span class="o">=</span> <span class="mf">2e-4</span>
+        <span class="n">vs</span><span class="o">.</span><span class="n">kappaH_min</span> <span class="o">=</span> <span class="mf">7e-5</span>  <span class="c1"># usually 2e-5</span>
+        <span class="n">vs</span><span class="o">.</span><span class="n">enable_Prandtl_tke</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="n">vs</span><span class="o">.</span><span class="n">enable_kappaH_profile</span> <span class="o">=</span> <span class="kc">True</span>
+
+        <span class="c1"># eke</span>
+        <span class="n">vs</span><span class="o">.</span><span class="n">K_gm_0</span> <span class="o">=</span> <span class="mf">1000.0</span>
+        <span class="n">vs</span><span class="o">.</span><span class="n">enable_eke</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="n">vs</span><span class="o">.</span><span class="n">eke_k_max</span> <span class="o">=</span> <span class="mf">1e4</span>
+        <span class="n">vs</span><span class="o">.</span><span class="n">eke_c_k</span> <span class="o">=</span> <span class="mf">0.4</span>
+        <span class="n">vs</span><span class="o">.</span><span class="n">eke_c_eps</span> <span class="o">=</span> <span class="mf">0.5</span>
+        <span class="n">vs</span><span class="o">.</span><span class="n">eke_cross</span> <span class="o">=</span> <span class="mf">2.</span>
+        <span class="n">vs</span><span class="o">.</span><span class="n">eke_crhin</span> <span class="o">=</span> <span class="mf">1.0</span>
+        <span class="n">vs</span><span class="o">.</span><span class="n">eke_lmin</span> <span class="o">=</span> <span class="mf">100.0</span>
+        <span class="n">vs</span><span class="o">.</span><span class="n">enable_eke_superbee_advection</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="n">vs</span><span class="o">.</span><span class="n">enable_eke_isopycnal_diffusion</span> <span class="o">=</span> <span class="kc">False</span>
+
+        <span class="c1"># idemix</span>
+        <span class="n">vs</span><span class="o">.</span><span class="n">enable_idemix</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="n">vs</span><span class="o">.</span><span class="n">enable_idemix_hor_diffusion</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="n">vs</span><span class="o">.</span><span class="n">enable_eke_diss_surfbot</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="n">vs</span><span class="o">.</span><span class="n">eke_diss_surfbot_frac</span> <span class="o">=</span> <span class="mf">0.2</span>  <span class="c1">#  fraction which goes into bottom</span>
+        <span class="n">vs</span><span class="o">.</span><span class="n">enable_idemix_superbee_advection</span> <span class="o">=</span> <span class="kc">False</span>
+
+        <span class="n">vs</span><span class="o">.</span><span class="n">eq_of_state_type</span> <span class="o">=</span> <span class="mi">5</span>
+
+        <span class="c1"># custom variables</span>
+        <span class="n">vs</span><span class="o">.</span><span class="n">nmonths</span> <span class="o">=</span> <span class="mi">12</span>
+        <span class="n">vs</span><span class="o">.</span><span class="n">variables</span><span class="o">.</span><span class="n">update</span><span class="p">(</span>
+            <span class="n">sss_clim</span><span class="o">=</span><span class="n">Variable</span><span class="p">(</span><span class="s1">&#39;sss_clim&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;xt&#39;</span><span class="p">,</span> <span class="s1">&#39;yt&#39;</span><span class="p">,</span> <span class="s1">&#39;nmonths&#39;</span><span class="p">),</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">time_dependent</span><span class="o">=</span><span class="kc">False</span><span class="p">),</span>
+            <span class="n">sst_clim</span><span class="o">=</span><span class="n">Variable</span><span class="p">(</span><span class="s1">&#39;sst_clim&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;xt&#39;</span><span class="p">,</span> <span class="s1">&#39;yt&#39;</span><span class="p">,</span> <span class="s1">&#39;nmonths&#39;</span><span class="p">),</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">time_dependent</span><span class="o">=</span><span class="kc">False</span><span class="p">),</span>
+            <span class="n">qnec</span><span class="o">=</span><span class="n">Variable</span><span class="p">(</span><span class="s1">&#39;qnec&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;xt&#39;</span><span class="p">,</span> <span class="s1">&#39;yt&#39;</span><span class="p">,</span> <span class="s1">&#39;nmonths&#39;</span><span class="p">),</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">time_dependent</span><span class="o">=</span><span class="kc">False</span><span class="p">),</span>
+            <span class="n">qnet</span><span class="o">=</span><span class="n">Variable</span><span class="p">(</span><span class="s1">&#39;qnet&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;xt&#39;</span><span class="p">,</span> <span class="s1">&#39;yt&#39;</span><span class="p">,</span> <span class="s1">&#39;nmonths&#39;</span><span class="p">),</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">time_dependent</span><span class="o">=</span><span class="kc">False</span><span class="p">),</span>
+            <span class="n">taux</span><span class="o">=</span><span class="n">Variable</span><span class="p">(</span><span class="s1">&#39;taux&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;xt&#39;</span><span class="p">,</span> <span class="s1">&#39;yt&#39;</span><span class="p">,</span> <span class="s1">&#39;nmonths&#39;</span><span class="p">),</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">time_dependent</span><span class="o">=</span><span class="kc">False</span><span class="p">),</span>
+            <span class="n">tauy</span><span class="o">=</span><span class="n">Variable</span><span class="p">(</span><span class="s1">&#39;tauy&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;xt&#39;</span><span class="p">,</span> <span class="s1">&#39;yt&#39;</span><span class="p">,</span> <span class="s1">&#39;nmonths&#39;</span><span class="p">),</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">time_dependent</span><span class="o">=</span><span class="kc">False</span><span class="p">),</span>
+        <span class="p">)</span>
+
+    <span class="nd">@veros_method</span>
+    <span class="k">def</span> <span class="nf">_read_forcing</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">vs</span><span class="p">,</span> <span class="n">var</span><span class="p">):</span>
+        <span class="k">with</span> <span class="n">h5netcdf</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="n">DATA_FILES</span><span class="p">[</span><span class="s1">&#39;forcing&#39;</span><span class="p">],</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">infile</span><span class="p">:</span>
+            <span class="n">var_obj</span> <span class="o">=</span> <span class="n">infile</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="n">var</span><span class="p">]</span>
+            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">var_obj</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">var_obj</span><span class="o">.</span><span class="n">dtype</span><span class="p">))</span><span class="o">.</span><span class="n">T</span>
+
+    <span class="nd">@veros_method</span>
+    <span class="k">def</span> <span class="nf">set_grid</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">vs</span><span class="p">):</span>
+        <span class="n">ddz</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">50.</span><span class="p">,</span> <span class="mf">70.</span><span class="p">,</span> <span class="mf">100.</span><span class="p">,</span> <span class="mf">140.</span><span class="p">,</span> <span class="mf">190.</span><span class="p">,</span> <span class="mf">240.</span><span class="p">,</span> <span class="mf">290.</span><span class="p">,</span> <span class="mf">340.</span><span class="p">,</span>
+                        <span class="mf">390.</span><span class="p">,</span> <span class="mf">440.</span><span class="p">,</span> <span class="mf">490.</span><span class="p">,</span> <span class="mf">540.</span><span class="p">,</span> <span class="mf">590.</span><span class="p">,</span> <span class="mf">640.</span><span class="p">,</span> <span class="mf">690.</span><span class="p">])</span>
+        <span class="n">vs</span><span class="o">.</span><span class="n">dzt</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">ddz</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">vs</span><span class="o">.</span><span class="n">dxt</span><span class="p">[:]</span> <span class="o">=</span> <span class="mf">4.0</span>
+        <span class="n">vs</span><span class="o">.</span><span class="n">dyt</span><span class="p">[:]</span> <span class="o">=</span> <span class="mf">4.0</span>
+        <span class="n">vs</span><span class="o">.</span><span class="n">y_origin</span> <span class="o">=</span> <span class="o">-</span><span class="mf">78.0</span>
+        <span class="n">vs</span><span class="o">.</span><span class="n">x_origin</span> <span class="o">=</span> <span class="mf">4.0</span>
+
+        <span class="n">idx_global</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">distributed</span><span class="o">.</span><span class="n">get_chunk_slices</span><span class="p">(</span><span class="n">vs</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;xt&#39;</span><span class="p">,</span> <span class="s1">&#39;yt&#39;</span><span class="p">,</span> <span class="s1">&#39;zt&#39;</span><span class="p">))</span>
+
+        <span class="k">with</span> <span class="n">h5netcdf</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="n">DATA_FILES</span><span class="p">[</span><span class="s1">&#39;corev2&#39;</span><span class="p">],</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">infile</span><span class="p">:</span>
+            <span class="n">vs</span><span class="o">.</span><span class="n">swr_initial</span> <span class="o">=</span> <span class="n">infile</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;SWDN_MOD&#39;</span><span class="p">][</span><span class="n">idx_global</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]]</span><span class="o">.</span><span class="n">T</span>
+
+    <span class="nd">@veros_method</span>
+    <span class="k">def</span> <span class="nf">set_coriolis</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">vs</span><span class="p">):</span>
+        <span class="n">vs</span><span class="o">.</span><span class="n">coriolis_t</span><span class="p">[</span><span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">vs</span><span class="o">.</span><span class="n">omega</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">vs</span><span class="o">.</span><span class="n">yt</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">,</span> <span class="p">:]</span> <span class="o">/</span> <span class="mf">180.</span> <span class="o">*</span> <span class="n">vs</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span>
+
+    <span class="nd">@veros_method</span><span class="p">(</span><span class="n">dist_safe</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">local_variables</span><span class="o">=</span><span class="p">[</span>
+        <span class="s1">&#39;kbot&#39;</span>
+    <span class="p">])</span>
+    <span class="k">def</span> <span class="nf">set_topography</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">vs</span><span class="p">):</span>
+        <span class="n">bathymetry_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_read_forcing</span><span class="p">(</span><span class="n">vs</span><span class="p">,</span> <span class="s1">&#39;bathymetry&#39;</span><span class="p">)</span>
+        <span class="n">salt_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_read_forcing</span><span class="p">(</span><span class="n">vs</span><span class="p">,</span> <span class="s1">&#39;salinity&#39;</span><span class="p">)[:,</span> <span class="p">:,</span> <span class="p">::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">mask_salt</span> <span class="o">=</span> <span class="n">salt_data</span> <span class="o">==</span> <span class="mf">0.</span>
+        <span class="n">vs</span><span class="o">.</span><span class="n">kbot</span><span class="p">[</span><span class="mi">2</span><span class="p">:</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">:</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">mask_salt</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+        <span class="n">mask_bathy</span> <span class="o">=</span> <span class="n">bathymetry_data</span> <span class="o">==</span> <span class="mi">0</span>
+        <span class="n">vs</span><span class="o">.</span><span class="n">kbot</span><span class="p">[</span><span class="mi">2</span><span class="p">:</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">:</span><span class="o">-</span><span class="mi">2</span><span class="p">][</span><span class="n">mask_bathy</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">vs</span><span class="o">.</span><span class="n">kbot</span><span class="p">[</span><span class="n">vs</span><span class="o">.</span><span class="n">kbot</span> <span class="o">==</span> <span class="n">vs</span><span class="o">.</span><span class="n">nz</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="nd">@veros_method</span><span class="p">(</span><span class="n">dist_safe</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">local_variables</span><span class="o">=</span><span class="p">[</span>
+        <span class="s1">&#39;taux&#39;</span><span class="p">,</span> <span class="s1">&#39;tauy&#39;</span><span class="p">,</span> <span class="s1">&#39;qnec&#39;</span><span class="p">,</span> <span class="s1">&#39;qnet&#39;</span><span class="p">,</span> <span class="s1">&#39;sss_clim&#39;</span><span class="p">,</span> <span class="s1">&#39;sst_clim&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;temp&#39;</span><span class="p">,</span> <span class="s1">&#39;salt&#39;</span><span class="p">,</span> <span class="s1">&#39;taux&#39;</span><span class="p">,</span> <span class="s1">&#39;tauy&#39;</span><span class="p">,</span> <span class="s1">&#39;area_t&#39;</span><span class="p">,</span> <span class="s1">&#39;maskT&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;forc_iw_bottom&#39;</span><span class="p">,</span> <span class="s1">&#39;forc_iw_surface&#39;</span><span class="p">,</span> <span class="s1">&#39;zw&#39;</span><span class="p">,</span> <span class="s1">&#39;maskT&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;phytoplankton&#39;</span><span class="p">,</span> <span class="s1">&#39;zooplankton&#39;</span><span class="p">,</span> <span class="s1">&#39;detritus&#39;</span><span class="p">,</span> <span class="s1">&#39;po4&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;dic&#39;</span><span class="p">,</span> <span class="s1">&#39;atmospheric_co2&#39;</span><span class="p">,</span> <span class="s1">&#39;alkalinity&#39;</span><span class="p">,</span> <span class="s1">&#39;hSWS&#39;</span>
+    <span class="p">])</span>
+    <span class="k">def</span> <span class="nf">set_initial_conditions</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">vs</span><span class="p">):</span>
+        <span class="c1"># initial conditions for T and S</span>
+        <span class="n">temp_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_read_forcing</span><span class="p">(</span><span class="n">vs</span><span class="p">,</span> <span class="s1">&#39;temperature&#39;</span><span class="p">)[:,</span> <span class="p">:,</span> <span class="p">::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">vs</span><span class="o">.</span><span class="n">temp</span><span class="p">[</span><span class="mi">2</span><span class="p">:</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">:</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="p">:,</span> <span class="p">:</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">temp_data</span><span class="p">[:,</span> <span class="p">:,</span> <span class="p">:,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">]</span> <span class="o">*</span> \
+            <span class="n">vs</span><span class="o">.</span><span class="n">maskT</span><span class="p">[</span><span class="mi">2</span><span class="p">:</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">:</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="p">:,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">]</span>
+
+        <span class="n">salt_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_read_forcing</span><span class="p">(</span><span class="n">vs</span><span class="p">,</span> <span class="s1">&#39;salinity&#39;</span><span class="p">)[:,</span> <span class="p">:,</span> <span class="p">::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">vs</span><span class="o">.</span><span class="n">salt</span><span class="p">[</span><span class="mi">2</span><span class="p">:</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">:</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="p">:,</span> <span class="p">:</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">salt_data</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">]</span> <span class="o">*</span> <span class="n">vs</span><span class="o">.</span><span class="n">maskT</span><span class="p">[</span><span class="mi">2</span><span class="p">:</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">:</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="p">:,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">]</span>
+
+        <span class="c1"># use Trenberth wind stress from MITgcm instead of ECMWF (also contained in ecmwf_4deg.cdf)</span>
+        <span class="n">vs</span><span class="o">.</span><span class="n">taux</span><span class="p">[</span><span class="mi">2</span><span class="p">:</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">:</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_read_forcing</span><span class="p">(</span><span class="n">vs</span><span class="p">,</span> <span class="s1">&#39;tau_x&#39;</span><span class="p">)</span>
+        <span class="n">vs</span><span class="o">.</span><span class="n">tauy</span><span class="p">[</span><span class="mi">2</span><span class="p">:</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">:</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_read_forcing</span><span class="p">(</span><span class="n">vs</span><span class="p">,</span> <span class="s1">&#39;tau_y&#39;</span><span class="p">)</span>
+
+        <span class="c1"># heat flux</span>
+        <span class="k">with</span> <span class="n">h5netcdf</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="n">DATA_FILES</span><span class="p">[</span><span class="s1">&#39;ecmwf&#39;</span><span class="p">],</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">ecmwf_data</span><span class="p">:</span>
+            <span class="n">qnec_var</span> <span class="o">=</span> <span class="n">ecmwf_data</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;Q3&#39;</span><span class="p">]</span>
+            <span class="n">vs</span><span class="o">.</span><span class="n">qnec</span><span class="p">[</span><span class="mi">2</span><span class="p">:</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">:</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">qnec_var</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">qnec_var</span><span class="o">.</span><span class="n">dtype</span><span class="p">))</span><span class="o">.</span><span class="n">transpose</span><span class="p">()</span>
+            <span class="n">vs</span><span class="o">.</span><span class="n">qnec</span><span class="p">[</span><span class="n">vs</span><span class="o">.</span><span class="n">qnec</span> <span class="o">&lt;=</span> <span class="o">-</span><span class="mf">1e10</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.0</span>
+
+        <span class="n">q</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_read_forcing</span><span class="p">(</span><span class="n">vs</span><span class="p">,</span> <span class="s1">&#39;q_net&#39;</span><span class="p">)</span>
+        <span class="n">vs</span><span class="o">.</span><span class="n">qnet</span><span class="p">[</span><span class="mi">2</span><span class="p">:</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">:</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="o">-</span><span class="n">q</span>
+        <span class="n">vs</span><span class="o">.</span><span class="n">qnet</span><span class="p">[</span><span class="n">vs</span><span class="o">.</span><span class="n">qnet</span> <span class="o">&lt;=</span> <span class="o">-</span><span class="mf">1e10</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.0</span>
+
+        <span class="n">fxa</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">vs</span><span class="o">.</span><span class="n">qnet</span><span class="p">[</span><span class="mi">2</span><span class="p">:</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">:</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="p">:]</span> <span class="o">*</span> <span class="n">vs</span><span class="o">.</span><span class="n">area_t</span><span class="p">[</span><span class="mi">2</span><span class="p">:</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">:</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">])</span> \
+              <span class="o">/</span> <span class="mi">12</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">vs</span><span class="o">.</span><span class="n">area_t</span><span class="p">[</span><span class="mi">2</span><span class="p">:</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">:</span><span class="o">-</span><span class="mi">2</span><span class="p">])</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39; removing an annual mean heat flux imbalance of </span><span class="si">%e</span><span class="s1"> W/m^2&#39;</span> <span class="o">%</span> <span class="n">fxa</span><span class="p">)</span>
+        <span class="n">vs</span><span class="o">.</span><span class="n">qnet</span><span class="p">[</span><span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">vs</span><span class="o">.</span><span class="n">qnet</span> <span class="o">-</span> <span class="n">fxa</span><span class="p">)</span> <span class="o">*</span> <span class="n">vs</span><span class="o">.</span><span class="n">maskT</span><span class="p">[:,</span> <span class="p">:,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">]</span>
+
+        <span class="c1"># SST and SSS</span>
+        <span class="n">vs</span><span class="o">.</span><span class="n">sst_clim</span><span class="p">[</span><span class="mi">2</span><span class="p">:</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">:</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_read_forcing</span><span class="p">(</span><span class="n">vs</span><span class="p">,</span> <span class="s1">&#39;sst&#39;</span><span class="p">)</span>
+        <span class="n">vs</span><span class="o">.</span><span class="n">sss_clim</span><span class="p">[</span><span class="mi">2</span><span class="p">:</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">:</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_read_forcing</span><span class="p">(</span><span class="n">vs</span><span class="p">,</span> <span class="s1">&#39;sss&#39;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">vs</span><span class="o">.</span><span class="n">enable_idemix</span><span class="p">:</span>
+            <span class="n">vs</span><span class="o">.</span><span class="n">forc_iw_bottom</span><span class="p">[</span><span class="mi">2</span><span class="p">:</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">:</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_read_forcing</span><span class="p">(</span><span class="n">vs</span><span class="p">,</span> <span class="s1">&#39;tidal_energy&#39;</span><span class="p">)</span> <span class="o">/</span> <span class="n">vs</span><span class="o">.</span><span class="n">rho_0</span>
+            <span class="n">vs</span><span class="o">.</span><span class="n">forc_iw_surface</span><span class="p">[</span><span class="mi">2</span><span class="p">:</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">:</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_read_forcing</span><span class="p">(</span><span class="n">vs</span><span class="p">,</span> <span class="s1">&#39;wind_energy&#39;</span><span class="p">)</span> <span class="o">/</span> <span class="n">vs</span><span class="o">.</span><span class="n">rho_0</span> <span class="o">*</span> <span class="mf">0.2</span>
+
+        <span class="k">if</span> <span class="n">vs</span><span class="o">.</span><span class="n">enable_npzd</span><span class="p">:</span>
+            <span class="n">phytoplankton</span> <span class="o">=</span> <span class="mf">0.14</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">vs</span><span class="o">.</span><span class="n">zw</span> <span class="o">/</span> <span class="mi">100</span><span class="p">)</span> <span class="o">*</span> <span class="n">vs</span><span class="o">.</span><span class="n">maskT</span>
+            <span class="n">zooplankton</span> <span class="o">=</span> <span class="mf">0.014</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">vs</span><span class="o">.</span><span class="n">zw</span> <span class="o">/</span> <span class="mi">100</span><span class="p">)</span> <span class="o">*</span> <span class="n">vs</span><span class="o">.</span><span class="n">maskT</span>
+
+            <span class="n">vs</span><span class="o">.</span><span class="n">phytoplankton</span><span class="p">[:,</span> <span class="p">:,</span> <span class="p">:,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">phytoplankton</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">]</span>
+            <span class="n">vs</span><span class="o">.</span><span class="n">zooplankton</span><span class="p">[:,</span> <span class="p">:,</span> <span class="p">:,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">zooplankton</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">]</span>
+            <span class="n">vs</span><span class="o">.</span><span class="n">detritus</span><span class="p">[:,</span> <span class="p">:,</span> <span class="p">:,</span> <span class="p">:]</span> <span class="o">=</span> <span class="mf">1e-4</span> <span class="o">*</span> <span class="n">vs</span><span class="o">.</span><span class="n">maskT</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">]</span>
+
+            <span class="n">vs</span><span class="o">.</span><span class="n">po4</span><span class="p">[:,</span> <span class="p">:,</span> <span class="p">:,</span> <span class="p">:]</span> <span class="o">=</span> <span class="mf">2.2</span>
+            <span class="n">vs</span><span class="o">.</span><span class="n">po4</span><span class="p">[</span><span class="o">...</span><span class="p">]</span> <span class="o">*=</span> <span class="n">vs</span><span class="o">.</span><span class="n">maskT</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="n">vs</span><span class="o">.</span><span class="n">enable_carbon</span><span class="p">:</span>
+            <span class="n">vs</span><span class="o">.</span><span class="n">dic</span><span class="p">[</span><span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="mi">2300</span> <span class="o">*</span> <span class="n">vs</span><span class="o">.</span><span class="n">maskT</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">]</span>
+            <span class="n">vs</span><span class="o">.</span><span class="n">atmospheric_co2</span><span class="p">[</span><span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="mi">280</span>
+            <span class="n">vs</span><span class="o">.</span><span class="n">alkalinity</span><span class="p">[</span><span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="mi">2400</span> <span class="o">*</span> <span class="n">vs</span><span class="o">.</span><span class="n">maskT</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">]</span>
+
+            <span class="n">vs</span><span class="o">.</span><span class="n">hSWS</span><span class="p">[</span><span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="mf">5e-7</span>
+
+    <span class="nd">@veros_method</span>
+    <span class="k">def</span> <span class="nf">set_forcing</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">vs</span><span class="p">):</span>
+        <span class="n">year_in_seconds</span> <span class="o">=</span> <span class="mi">360</span> <span class="o">*</span> <span class="mf">86400.</span>
+        <span class="p">(</span><span class="n">n1</span><span class="p">,</span> <span class="n">f1</span><span class="p">),</span> <span class="p">(</span><span class="n">n2</span><span class="p">,</span> <span class="n">f2</span><span class="p">)</span> <span class="o">=</span> <span class="n">veros</span><span class="o">.</span><span class="n">tools</span><span class="o">.</span><span class="n">get_periodic_interval</span><span class="p">(</span>
+            <span class="n">vs</span><span class="o">.</span><span class="n">time</span><span class="p">,</span> <span class="n">year_in_seconds</span><span class="p">,</span> <span class="n">year_in_seconds</span> <span class="o">/</span> <span class="mf">12.</span><span class="p">,</span> <span class="mi">12</span>
+        <span class="p">)</span>
+
+        <span class="c1"># wind stress</span>
+        <span class="n">vs</span><span class="o">.</span><span class="n">surface_taux</span><span class="p">[</span><span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">f1</span> <span class="o">*</span> <span class="n">vs</span><span class="o">.</span><span class="n">taux</span><span class="p">[:,</span> <span class="p">:,</span> <span class="n">n1</span><span class="p">]</span> <span class="o">+</span> <span class="n">f2</span> <span class="o">*</span> <span class="n">vs</span><span class="o">.</span><span class="n">taux</span><span class="p">[:,</span> <span class="p">:,</span> <span class="n">n2</span><span class="p">])</span>
+        <span class="n">vs</span><span class="o">.</span><span class="n">surface_tauy</span><span class="p">[</span><span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">f1</span> <span class="o">*</span> <span class="n">vs</span><span class="o">.</span><span class="n">tauy</span><span class="p">[:,</span> <span class="p">:,</span> <span class="n">n1</span><span class="p">]</span> <span class="o">+</span> <span class="n">f2</span> <span class="o">*</span> <span class="n">vs</span><span class="o">.</span><span class="n">tauy</span><span class="p">[:,</span> <span class="p">:,</span> <span class="n">n2</span><span class="p">])</span>
+
+        <span class="c1"># tke flux</span>
+        <span class="k">if</span> <span class="n">vs</span><span class="o">.</span><span class="n">enable_tke</span><span class="p">:</span>
+            <span class="n">vs</span><span class="o">.</span><span class="n">forc_tke_surface</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">((</span><span class="mf">0.5</span> <span class="o">*</span> <span class="p">(</span><span class="n">vs</span><span class="o">.</span><span class="n">surface_taux</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> \
+                                                                <span class="o">+</span> <span class="n">vs</span><span class="o">.</span><span class="n">surface_taux</span><span class="p">[:</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span> <span class="o">/</span> <span class="n">vs</span><span class="o">.</span><span class="n">rho_0</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span>
+                                                      <span class="o">+</span> <span class="p">(</span><span class="mf">0.5</span> <span class="o">*</span> <span class="p">(</span><span class="n">vs</span><span class="o">.</span><span class="n">surface_tauy</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> \
+                                                                <span class="o">+</span> <span class="n">vs</span><span class="o">.</span><span class="n">surface_tauy</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="p">:</span><span class="o">-</span><span class="mi">2</span><span class="p">])</span> <span class="o">/</span> <span class="n">vs</span><span class="o">.</span><span class="n">rho_0</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span><span class="o">**</span><span class="p">(</span><span class="mf">3.</span> <span class="o">/</span> <span class="mf">2.</span><span class="p">)</span>
+        <span class="c1"># heat flux : W/m^2 K kg/J m^3/kg = K m/s</span>
+        <span class="n">cp_0</span> <span class="o">=</span> <span class="mf">3991.86795711963</span>
+        <span class="n">sst</span> <span class="o">=</span> <span class="n">f1</span> <span class="o">*</span> <span class="n">vs</span><span class="o">.</span><span class="n">sst_clim</span><span class="p">[:,</span> <span class="p">:,</span> <span class="n">n1</span><span class="p">]</span> <span class="o">+</span> <span class="n">f2</span> <span class="o">*</span> <span class="n">vs</span><span class="o">.</span><span class="n">sst_clim</span><span class="p">[:,</span> <span class="p">:,</span> <span class="n">n2</span><span class="p">]</span>
+        <span class="n">qnec</span> <span class="o">=</span> <span class="n">f1</span> <span class="o">*</span> <span class="n">vs</span><span class="o">.</span><span class="n">qnec</span><span class="p">[:,</span> <span class="p">:,</span> <span class="n">n1</span><span class="p">]</span> <span class="o">+</span> <span class="n">f2</span> <span class="o">*</span> <span class="n">vs</span><span class="o">.</span><span class="n">qnec</span><span class="p">[:,</span> <span class="p">:,</span> <span class="n">n2</span><span class="p">]</span>
+        <span class="n">qnet</span> <span class="o">=</span> <span class="n">f1</span> <span class="o">*</span> <span class="n">vs</span><span class="o">.</span><span class="n">qnet</span><span class="p">[:,</span> <span class="p">:,</span> <span class="n">n1</span><span class="p">]</span> <span class="o">+</span> <span class="n">f2</span> <span class="o">*</span> <span class="n">vs</span><span class="o">.</span><span class="n">qnet</span><span class="p">[:,</span> <span class="p">:,</span> <span class="n">n2</span><span class="p">]</span>
+        <span class="n">vs</span><span class="o">.</span><span class="n">forc_temp_surface</span><span class="p">[</span><span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">qnet</span> <span class="o">+</span> <span class="n">qnec</span> <span class="o">*</span> <span class="p">(</span><span class="n">sst</span> <span class="o">-</span> <span class="n">vs</span><span class="o">.</span><span class="n">temp</span><span class="p">[:,</span> <span class="p">:,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">vs</span><span class="o">.</span><span class="n">tau</span><span class="p">]))</span> \
+                                       <span class="o">*</span> <span class="n">vs</span><span class="o">.</span><span class="n">maskT</span><span class="p">[:,</span> <span class="p">:,</span> <span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">/</span> <span class="n">cp_0</span> <span class="o">/</span> <span class="n">vs</span><span class="o">.</span><span class="n">rho_0</span>
+
+        <span class="c1"># salinity restoring</span>
+        <span class="n">t_rest</span> <span class="o">=</span> <span class="mi">30</span> <span class="o">*</span> <span class="mf">86400.0</span>
+        <span class="n">sss</span> <span class="o">=</span> <span class="n">f1</span> <span class="o">*</span> <span class="n">vs</span><span class="o">.</span><span class="n">sss_clim</span><span class="p">[:,</span> <span class="p">:,</span> <span class="n">n1</span><span class="p">]</span> <span class="o">+</span> <span class="n">f2</span> <span class="o">*</span> <span class="n">vs</span><span class="o">.</span><span class="n">sss_clim</span><span class="p">[:,</span> <span class="p">:,</span> <span class="n">n2</span><span class="p">]</span>
+
+        <span class="n">vs</span><span class="o">.</span><span class="n">forc_salt_surface</span><span class="p">[:]</span> <span class="o">=</span> <span class="mf">1.</span> <span class="o">/</span> <span class="n">t_rest</span> <span class="o">*</span> \
+            <span class="p">(</span><span class="n">sss</span> <span class="o">-</span> <span class="n">vs</span><span class="o">.</span><span class="n">salt</span><span class="p">[:,</span> <span class="p">:,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">vs</span><span class="o">.</span><span class="n">tau</span><span class="p">])</span> <span class="o">*</span> <span class="n">vs</span><span class="o">.</span><span class="n">maskT</span><span class="p">[:,</span> <span class="p">:,</span> <span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="n">vs</span><span class="o">.</span><span class="n">dzt</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+        <span class="c1"># apply simple ice mask</span>
+        <span class="n">mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="n">vs</span><span class="o">.</span><span class="n">temp</span><span class="p">[:,</span> <span class="p">:,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">vs</span><span class="o">.</span><span class="n">tau</span><span class="p">]</span> <span class="o">*</span> <span class="n">vs</span><span class="o">.</span><span class="n">maskT</span><span class="p">[:,</span> <span class="p">:,</span> <span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">&lt;</span> <span class="o">-</span><span class="mf">1.8</span><span class="p">,</span>
+                              <span class="n">vs</span><span class="o">.</span><span class="n">forc_temp_surface</span> <span class="o">&lt;</span> <span class="mf">0.</span><span class="p">)</span>
+        <span class="n">vs</span><span class="o">.</span><span class="n">forc_temp_surface</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="n">vs</span><span class="o">.</span><span class="n">forc_salt_surface</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.0</span>
+
+        <span class="k">if</span> <span class="n">vs</span><span class="o">.</span><span class="n">enable_npzd</span><span class="p">:</span>
+            <span class="c1"># incoming shortwave radiation for plankton production</span>
+            <span class="n">vs</span><span class="o">.</span><span class="n">swr</span><span class="p">[</span><span class="mi">2</span><span class="p">:</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">:</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">f1</span> <span class="o">*</span> <span class="n">vs</span><span class="o">.</span><span class="n">swr_initial</span><span class="p">[:,</span> <span class="p">:,</span> <span class="n">n1</span><span class="p">]</span> <span class="o">+</span> <span class="n">f2</span> <span class="o">*</span> <span class="n">vs</span><span class="o">.</span><span class="n">swr_initial</span><span class="p">[:,</span> <span class="p">:,</span> <span class="n">n2</span><span class="p">])</span>
+
+    <span class="nd">@veros_method</span>
+    <span class="k">def</span> <span class="nf">set_diagnostics</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">vs</span><span class="p">):</span>
+        <span class="n">vs</span><span class="o">.</span><span class="n">diagnostics</span><span class="p">[</span><span class="s1">&#39;snapshot&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">output_frequency</span> <span class="o">=</span> <span class="mi">360</span> <span class="o">*</span> <span class="mf">86400.</span>
+
+        <span class="n">vs</span><span class="o">.</span><span class="n">diagnostics</span><span class="p">[</span><span class="s1">&#39;overturning&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">output_frequency</span> <span class="o">=</span> <span class="mi">360</span> <span class="o">*</span> <span class="mf">86400.</span>
+        <span class="n">vs</span><span class="o">.</span><span class="n">diagnostics</span><span class="p">[</span><span class="s1">&#39;overturning&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">sampling_frequency</span> <span class="o">=</span> <span class="n">vs</span><span class="o">.</span><span class="n">dt_tracer</span>
+
+        <span class="n">vs</span><span class="o">.</span><span class="n">diagnostics</span><span class="p">[</span><span class="s1">&#39;energy&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">output_frequency</span> <span class="o">=</span> <span class="mi">360</span> <span class="o">*</span> <span class="mf">86400.</span>
+        <span class="n">vs</span><span class="o">.</span><span class="n">diagnostics</span><span class="p">[</span><span class="s1">&#39;energy&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">sampling_frequency</span> <span class="o">=</span> <span class="mi">86400</span>
+
+        <span class="n">average_vars</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="s1">&#39;phytoplankton&#39;</span><span class="p">,</span> <span class="s1">&#39;po4&#39;</span><span class="p">,</span> <span class="s1">&#39;zooplankton&#39;</span><span class="p">,</span> <span class="s1">&#39;detritus&#39;</span><span class="p">,</span> <span class="s1">&#39;wind_speed&#39;</span><span class="p">,</span> <span class="s1">&#39;dic&#39;</span><span class="p">,</span> <span class="s1">&#39;alkalinity&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;temp&#39;</span><span class="p">,</span> <span class="s1">&#39;salt&#39;</span><span class="p">,</span> <span class="s1">&#39;u&#39;</span><span class="p">,</span> <span class="s1">&#39;v&#39;</span><span class="p">,</span> <span class="s1">&#39;surface_tauy&#39;</span><span class="p">,</span> <span class="s1">&#39;surface_taux&#39;</span><span class="p">,</span> <span class="s1">&#39;kappaH&#39;</span><span class="p">,</span> <span class="s1">&#39;psi&#39;</span><span class="p">,</span> <span class="s1">&#39;rho&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;pCO2&#39;</span><span class="p">,</span> <span class="s1">&#39;dpCO2&#39;</span><span class="p">,</span> <span class="s1">&#39;dco2star&#39;</span><span class="p">,</span> <span class="s1">&#39;cflux&#39;</span><span class="p">,</span> <span class="s1">&#39;atmospheric_co2&#39;</span>
+        <span class="p">]</span>
+        <span class="n">vs</span><span class="o">.</span><span class="n">diagnostics</span><span class="p">[</span><span class="s1">&#39;averages&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">output_variables</span> <span class="o">=</span> <span class="n">average_vars</span>
+        <span class="n">vs</span><span class="o">.</span><span class="n">diagnostics</span><span class="p">[</span><span class="s1">&#39;averages&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">output_frequency</span> <span class="o">=</span> <span class="mi">360</span> <span class="o">*</span> <span class="mf">86400.</span>
+        <span class="n">vs</span><span class="o">.</span><span class="n">diagnostics</span><span class="p">[</span><span class="s1">&#39;averages&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">sampling_frequency</span> <span class="o">=</span> <span class="mi">86400</span>
+
+        <span class="n">vs</span><span class="o">.</span><span class="n">diagnostics</span><span class="p">[</span><span class="s1">&#39;npzd&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">output_frequency</span> <span class="o">=</span> <span class="mi">10</span> <span class="o">*</span> <span class="mi">86400</span>
+        <span class="n">vs</span><span class="o">.</span><span class="n">diagnostics</span><span class="p">[</span><span class="s1">&#39;npzd&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">save_graph</span> <span class="o">=</span> <span class="kc">False</span>
+
+    <span class="nd">@veros_method</span>
+    <span class="k">def</span> <span class="nf">after_timestep</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">vs</span><span class="p">):</span>
+        <span class="k">pass</span></div>
+
+
+<span class="nd">@veros</span><span class="o">.</span><span class="n">tools</span><span class="o">.</span><span class="n">cli</span>
+<span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="n">simulation</span> <span class="o">=</span> <span class="n">GlobalFourDegreeBGC</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="n">simulation</span><span class="o">.</span><span class="n">setup</span><span class="p">()</span>
+    <span class="n">simulation</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="n">run</span><span class="p">()</span>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2017-2019, The Veros Team, NBI Copenhagen
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

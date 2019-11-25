@@ -1,0 +1,471 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Diagnostics &mdash; Veros-BGC 0+untagged.3.gb2fcfb2.dirty documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> Veros-BGC
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0+untagged.3.gb2fcfb2.dirty
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Quick Start</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="quickstart/get-started.html">How to use Veros-BGC</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="reference/setup-gallery.html">Setup gallery</a></li>
+</ul>
+<p class="caption"><span class="caption-text">More Information</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference external" href="https://github.com/team-ocean/veros-bgc">Visit us on GitHub</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Veros-BGC</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>Diagnostics</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/diagnostics.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="diagnostics">
+<span id="id1"></span><h1>Diagnostics<a class="headerlink" href="#diagnostics" title="Permalink to this headline">¶</a></h1>
+<p>Diagnostics are separate objects (instances of subclasses of <code class="xref py py-class docutils literal notranslate"><span class="pre">VerosDiagnostic</span></code>)
+responsible for handling I/O, restart mechanics, and monitoring of the numerical
+solution. All available diagnostics are instantiated and added to a dictionary
+attribute <code class="xref py py-attr docutils literal notranslate"><span class="pre">VerosState.diagnostics</span></code> (with a key determined by their <cite>name</cite> attribute).
+Options for diagnostics may be set during the <code class="xref py py-meth docutils literal notranslate"><span class="pre">VerosSetup.set_diagnostics()</span></code> method:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">MyModelSetup</span><span class="p">(</span><span class="n">VerosSetup</span><span class="p">):</span>
+    <span class="o">...</span>
+    <span class="k">def</span> <span class="nf">set_diagnostics</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">vs</span><span class="p">):</span>
+        <span class="n">vs</span><span class="o">.</span><span class="n">diagnostics</span><span class="p">[</span><span class="s1">&#39;averages&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">output_variables</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;psi&#39;</span><span class="p">,</span><span class="s1">&#39;u&#39;</span><span class="p">,</span><span class="s1">&#39;v&#39;</span><span class="p">]</span>
+        <span class="n">vs</span><span class="o">.</span><span class="n">diagnostics</span><span class="p">[</span><span class="s1">&#39;averages&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">sampling_frequency</span> <span class="o">=</span> <span class="mf">3600.</span>
+        <span class="n">vs</span><span class="o">.</span><span class="n">diagnostics</span><span class="p">[</span><span class="s1">&#39;snapshot&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">output_variables</span> <span class="o">+=</span> <span class="p">[</span><span class="s1">&#39;du&#39;</span><span class="p">]</span>
+</pre></div>
+</div>
+<div class="section" id="base-class">
+<h2>Base class<a class="headerlink" href="#base-class" title="Permalink to this headline">¶</a></h2>
+<p>This class implements some common logic for all diagnostics. This makes it easy
+to write your own diagnostics: Just derive from this class, and implement the
+virtual functions.</p>
+<dl class="class">
+<dt id="veros.diagnostics.diagnostic.VerosDiagnostic">
+<em class="property">class </em><code class="descclassname">veros.diagnostics.diagnostic.</code><code class="descname">VerosDiagnostic</code><span class="sig-paren">(</span><em>vs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/veros/diagnostics/diagnostic.html#VerosDiagnostic"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#veros.diagnostics.diagnostic.VerosDiagnostic" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Base class for diagnostics. Provides an interface and wrappers for common I/O.</p>
+<p>Any diagnostic needs to implement the five interface methods and set some attributes.</p>
+<dl class="attribute">
+<dt id="veros.diagnostics.diagnostic.VerosDiagnostic.name">
+<code class="descname">name</code><em class="property"> = None</em><a class="headerlink" href="#veros.diagnostics.diagnostic.VerosDiagnostic.name" title="Permalink to this definition">¶</a></dt>
+<dd><p>Name that identifies the current diagnostic</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="veros.diagnostics.diagnostic.VerosDiagnostic.initialize">
+<code class="descname">initialize</code><span class="sig-paren">(</span><em>vs</em><span class="sig-paren">)</span><a class="headerlink" href="#veros.diagnostics.diagnostic.VerosDiagnostic.initialize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Called at the end of setup. Use this to process user settings and handle setup.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="veros.diagnostics.diagnostic.VerosDiagnostic.diagnose">
+<code class="descname">diagnose</code><span class="sig-paren">(</span><em>vs</em><span class="sig-paren">)</span><a class="headerlink" href="#veros.diagnostics.diagnostic.VerosDiagnostic.diagnose" title="Permalink to this definition">¶</a></dt>
+<dd><p>Called with frequency <code class="docutils literal notranslate"><span class="pre">sampling_frequency</span></code>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="veros.diagnostics.diagnostic.VerosDiagnostic.output">
+<code class="descname">output</code><span class="sig-paren">(</span><em>vs</em><span class="sig-paren">)</span><a class="headerlink" href="#veros.diagnostics.diagnostic.VerosDiagnostic.output" title="Permalink to this definition">¶</a></dt>
+<dd><p>Called with frequency <code class="docutils literal notranslate"><span class="pre">output_frequency</span></code>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="veros.diagnostics.diagnostic.VerosDiagnostic.write_restart">
+<code class="descname">write_restart</code><span class="sig-paren">(</span><em>vs</em><span class="sig-paren">)</span><a class="headerlink" href="#veros.diagnostics.diagnostic.VerosDiagnostic.write_restart" title="Permalink to this definition">¶</a></dt>
+<dd><p>Responsible for writing restart files.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="veros.diagnostics.diagnostic.VerosDiagnostic.read_restart">
+<code class="descname">read_restart</code><span class="sig-paren">(</span><em>vs</em><span class="sig-paren">)</span><a class="headerlink" href="#veros.diagnostics.diagnostic.VerosDiagnostic.read_restart" title="Permalink to this definition">¶</a></dt>
+<dd><p>Responsible for reading restart files.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="available-diagnostics">
+<h2>Available diagnostics<a class="headerlink" href="#available-diagnostics" title="Permalink to this headline">¶</a></h2>
+<p>Currently, the following diagnostics are implemented and added to
+<code class="xref py py-obj docutils literal notranslate"><span class="pre">VerosState.diagnostics</span></code>:</p>
+<div class="section" id="snapshot">
+<h3>Snapshot<a class="headerlink" href="#snapshot" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="veros.diagnostics.snapshot.Snapshot">
+<em class="property">class </em><code class="descclassname">veros.diagnostics.snapshot.</code><code class="descname">Snapshot</code><span class="sig-paren">(</span><em>vs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/veros/diagnostics/snapshot.html#Snapshot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#veros.diagnostics.snapshot.Snapshot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#veros.diagnostics.diagnostic.VerosDiagnostic" title="veros.diagnostics.diagnostic.VerosDiagnostic"><code class="xref py py-class docutils literal notranslate"><span class="pre">veros.diagnostics.diagnostic.VerosDiagnostic</span></code></a></p>
+<p>Writes snapshots of the current solution. Also reads and writes the main restart
+data required for restarting a Veros simulation.</p>
+<dl class="attribute">
+<dt id="veros.diagnostics.snapshot.Snapshot.output_path">
+<code class="descname">output_path</code><em class="property"> = '{identifier}.snapshot.nc'</em><a class="headerlink" href="#veros.diagnostics.snapshot.Snapshot.output_path" title="Permalink to this definition">¶</a></dt>
+<dd><p>File to write to. May contain format strings that are replaced with Veros attributes.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="veros.diagnostics.snapshot.Snapshot.name">
+<code class="descname">name</code><em class="property"> = 'snapshot'</em><a class="headerlink" href="#veros.diagnostics.snapshot.Snapshot.name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="veros.diagnostics.snapshot.Snapshot.output_frequency">
+<code class="descname">output_frequency</code><em class="property"> = None</em><a class="headerlink" href="#veros.diagnostics.snapshot.Snapshot.output_frequency" title="Permalink to this definition">¶</a></dt>
+<dd><p>Frequency (in seconds) in which output is written.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="veros.diagnostics.snapshot.Snapshot.output_variables">
+<code class="descname">output_variables</code><em class="property"> = None</em><a class="headerlink" href="#veros.diagnostics.snapshot.Snapshot.output_variables" title="Permalink to this definition">¶</a></dt>
+<dd><p>Variables to be written to output. Defaults to all Veros variables that
+have the attribute <code class="xref py py-attr docutils literal notranslate"><span class="pre">output</span></code>.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="veros.diagnostics.snapshot.Snapshot.restart_variables">
+<code class="descname">restart_variables</code><em class="property"> = None</em><a class="headerlink" href="#veros.diagnostics.snapshot.Snapshot.restart_variables" title="Permalink to this definition">¶</a></dt>
+<dd><p>Variables to be written to restart. Defaults to all Veros variables that
+have the attribute <code class="xref py py-attr docutils literal notranslate"><span class="pre">write_to_restart</span></code>.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="averages">
+<h3>Averages<a class="headerlink" href="#averages" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="veros.diagnostics.averages.Averages">
+<em class="property">class </em><code class="descclassname">veros.diagnostics.averages.</code><code class="descname">Averages</code><span class="sig-paren">(</span><em>vs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/veros/diagnostics/averages.html#Averages"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#veros.diagnostics.averages.Averages" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#veros.diagnostics.diagnostic.VerosDiagnostic" title="veros.diagnostics.diagnostic.VerosDiagnostic"><code class="xref py py-class docutils literal notranslate"><span class="pre">veros.diagnostics.diagnostic.VerosDiagnostic</span></code></a></p>
+<p>Time average output diagnostic.</p>
+<p>All registered variables are summed up when <code class="xref py py-meth docutils literal notranslate"><span class="pre">diagnose()</span></code> is called,
+and averaged and output upon calling <code class="xref py py-meth docutils literal notranslate"><span class="pre">output()</span></code>.</p>
+<dl class="attribute">
+<dt id="veros.diagnostics.averages.Averages.name">
+<code class="descname">name</code><em class="property"> = 'averages'</em><a class="headerlink" href="#veros.diagnostics.averages.Averages.name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="veros.diagnostics.averages.Averages.output_path">
+<code class="descname">output_path</code><em class="property"> = '{identifier}.averages.nc'</em><a class="headerlink" href="#veros.diagnostics.averages.Averages.output_path" title="Permalink to this definition">¶</a></dt>
+<dd><p>File to write to. May contain format strings that are replaced with Veros attributes.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="veros.diagnostics.averages.Averages.output_variables">
+<code class="descname">output_variables</code><em class="property"> = None</em><a class="headerlink" href="#veros.diagnostics.averages.Averages.output_variables" title="Permalink to this definition">¶</a></dt>
+<dd><p>Iterable containing all variables to be averaged. Changes have no effect after <code class="docutils literal notranslate"><span class="pre">initialize</span></code> has been called.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="veros.diagnostics.averages.Averages.output_frequency">
+<code class="descname">output_frequency</code><em class="property"> = None</em><a class="headerlink" href="#veros.diagnostics.averages.Averages.output_frequency" title="Permalink to this definition">¶</a></dt>
+<dd><p>Frequency (in seconds) in which output is written.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="veros.diagnostics.averages.Averages.sampling_frequency">
+<code class="descname">sampling_frequency</code><em class="property"> = None</em><a class="headerlink" href="#veros.diagnostics.averages.Averages.sampling_frequency" title="Permalink to this definition">¶</a></dt>
+<dd><p>Frequency (in seconds) in which variables are accumulated.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="cfl-monitor">
+<h3>CFL monitor<a class="headerlink" href="#cfl-monitor" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="veros.diagnostics.cfl_monitor.CFLMonitor">
+<em class="property">class </em><code class="descclassname">veros.diagnostics.cfl_monitor.</code><code class="descname">CFLMonitor</code><span class="sig-paren">(</span><em>vs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/veros/diagnostics/cfl_monitor.html#CFLMonitor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#veros.diagnostics.cfl_monitor.CFLMonitor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#veros.diagnostics.diagnostic.VerosDiagnostic" title="veros.diagnostics.diagnostic.VerosDiagnostic"><code class="xref py py-class docutils literal notranslate"><span class="pre">veros.diagnostics.diagnostic.VerosDiagnostic</span></code></a></p>
+<p>Diagnostic monitoring the maximum CFL number of the solution to detect
+instabilities.</p>
+<p>Writes output to stdout (no binary output).</p>
+<dl class="attribute">
+<dt id="veros.diagnostics.cfl_monitor.CFLMonitor.name">
+<code class="descname">name</code><em class="property"> = 'cfl_monitor'</em><a class="headerlink" href="#veros.diagnostics.cfl_monitor.CFLMonitor.name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="tracer-monitor">
+<h3>Tracer monitor<a class="headerlink" href="#tracer-monitor" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="veros.diagnostics.tracer_monitor.TracerMonitor">
+<em class="property">class </em><code class="descclassname">veros.diagnostics.tracer_monitor.</code><code class="descname">TracerMonitor</code><span class="sig-paren">(</span><em>vs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/veros/diagnostics/tracer_monitor.html#TracerMonitor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#veros.diagnostics.tracer_monitor.TracerMonitor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#veros.diagnostics.diagnostic.VerosDiagnostic" title="veros.diagnostics.diagnostic.VerosDiagnostic"><code class="xref py py-class docutils literal notranslate"><span class="pre">veros.diagnostics.diagnostic.VerosDiagnostic</span></code></a></p>
+<p>Diagnostic monitoring global tracer contents / fluxes.</p>
+<p>Writes output to stdout (no binary output).</p>
+<dl class="attribute">
+<dt id="veros.diagnostics.tracer_monitor.TracerMonitor.name">
+<code class="descname">name</code><em class="property"> = 'tracer_monitor'</em><a class="headerlink" href="#veros.diagnostics.tracer_monitor.TracerMonitor.name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="veros.diagnostics.tracer_monitor.TracerMonitor.output_frequency">
+<code class="descname">output_frequency</code><em class="property"> = None</em><a class="headerlink" href="#veros.diagnostics.tracer_monitor.TracerMonitor.output_frequency" title="Permalink to this definition">¶</a></dt>
+<dd><p>Frequency (in seconds) in which output is written.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="energy">
+<h3>Energy<a class="headerlink" href="#energy" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="veros.diagnostics.energy.Energy">
+<em class="property">class </em><code class="descclassname">veros.diagnostics.energy.</code><code class="descname">Energy</code><span class="sig-paren">(</span><em>vs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/veros/diagnostics/energy.html#Energy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#veros.diagnostics.energy.Energy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#veros.diagnostics.diagnostic.VerosDiagnostic" title="veros.diagnostics.diagnostic.VerosDiagnostic"><code class="xref py py-class docutils literal notranslate"><span class="pre">veros.diagnostics.diagnostic.VerosDiagnostic</span></code></a></p>
+<p>Diagnose globally averaged energy cycle. Also averages energy in time.</p>
+<dl class="attribute">
+<dt id="veros.diagnostics.energy.Energy.name">
+<code class="descname">name</code><em class="property"> = 'energy'</em><a class="headerlink" href="#veros.diagnostics.energy.Energy.name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="veros.diagnostics.energy.Energy.output_path">
+<code class="descname">output_path</code><em class="property"> = '{identifier}.energy.nc'</em><a class="headerlink" href="#veros.diagnostics.energy.Energy.output_path" title="Permalink to this definition">¶</a></dt>
+<dd><p>File to write to. May contain format strings that are replaced with Veros attributes.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="veros.diagnostics.energy.Energy.output_frequency">
+<code class="descname">output_frequency</code><em class="property"> = None</em><a class="headerlink" href="#veros.diagnostics.energy.Energy.output_frequency" title="Permalink to this definition">¶</a></dt>
+<dd><p>Frequency (in seconds) in which output is written.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="veros.diagnostics.energy.Energy.sampling_frequency">
+<code class="descname">sampling_frequency</code><em class="property"> = None</em><a class="headerlink" href="#veros.diagnostics.energy.Energy.sampling_frequency" title="Permalink to this definition">¶</a></dt>
+<dd><p>Frequency (in seconds) in which variables are accumulated.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="overturning">
+<h3>Overturning<a class="headerlink" href="#overturning" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="veros.diagnostics.overturning.Overturning">
+<em class="property">class </em><code class="descclassname">veros.diagnostics.overturning.</code><code class="descname">Overturning</code><span class="sig-paren">(</span><em>vs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/veros/diagnostics/overturning.html#Overturning"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#veros.diagnostics.overturning.Overturning" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#veros.diagnostics.diagnostic.VerosDiagnostic" title="veros.diagnostics.diagnostic.VerosDiagnostic"><code class="xref py py-class docutils literal notranslate"><span class="pre">veros.diagnostics.diagnostic.VerosDiagnostic</span></code></a></p>
+<p>Isopycnal overturning diagnostic. Computes and writes vertical streamfunctions
+(zonally averaged).</p>
+<dl class="attribute">
+<dt id="veros.diagnostics.overturning.Overturning.name">
+<code class="descname">name</code><em class="property"> = 'overturning'</em><a class="headerlink" href="#veros.diagnostics.overturning.Overturning.name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="veros.diagnostics.overturning.Overturning.output_path">
+<code class="descname">output_path</code><em class="property"> = '{identifier}.overturning.nc'</em><a class="headerlink" href="#veros.diagnostics.overturning.Overturning.output_path" title="Permalink to this definition">¶</a></dt>
+<dd><p>File to write to. May contain format strings that are replaced with Veros attributes.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="veros.diagnostics.overturning.Overturning.output_frequency">
+<code class="descname">output_frequency</code><em class="property"> = None</em><a class="headerlink" href="#veros.diagnostics.overturning.Overturning.output_frequency" title="Permalink to this definition">¶</a></dt>
+<dd><p>Frequency (in seconds) in which output is written.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="veros.diagnostics.overturning.Overturning.sampling_frequency">
+<code class="descname">sampling_frequency</code><em class="property"> = None</em><a class="headerlink" href="#veros.diagnostics.overturning.Overturning.sampling_frequency" title="Permalink to this definition">¶</a></dt>
+<dd><p>Frequency (in seconds) in which variables are accumulated.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="veros.diagnostics.overturning.Overturning.p_ref">
+<code class="descname">p_ref</code><em class="property"> = 2000.0</em><a class="headerlink" href="#veros.diagnostics.overturning.Overturning.p_ref" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reference pressure for isopycnals</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="biogeochemistry">
+<h3>Biogeochemistry<a class="headerlink" href="#biogeochemistry" title="Permalink to this headline">¶</a></h3>
+<p>This module monitors total phosphate and produces interaction graphs for the biogeochemistry module</p>
+</div>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2017-2019, The Veros Team, NBI Copenhagen
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

@@ -1,0 +1,375 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>veros_bgc.diagnostics.npzd_monitor &mdash; Veros-BGC 0+untagged.3.gb2fcfb2.dirty documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../../../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../../_static/doctools.js"></script>
+        <script type="text/javascript" src="../../../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> Veros-BGC
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0+untagged.3.gb2fcfb2.dirty
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Usage</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../quickstart/user-guide.html">Basic usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quickstart/developer-guide.html">Custom rules and tracers</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../reference/setup-gallery.html">Setup gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../reference/settings.html">Available settings</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../reference/variables.html">Available variables</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../reference/diagnostics.html">Biogeochemistry diagnostic</a></li>
+</ul>
+<p class="caption"><span class="caption-text">More Information</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference external" href="https://readthedocs.io/veros">Veros core documentation</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://github.com/team-ocean/veros-bgc">Visit us on GitHub</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">Veros-BGC</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+      <li>veros_bgc.diagnostics.npzd_monitor</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for veros_bgc.diagnostics.npzd_monitor</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">loguru</span> <span class="k">import</span> <span class="n">logger</span>
+
+<span class="kn">from</span> <span class="nn">veros.diagnostics.diagnostic</span> <span class="k">import</span> <span class="n">VerosDiagnostic</span>
+<span class="kn">from</span> <span class="nn">veros</span> <span class="k">import</span> <span class="n">veros_method</span>
+
+
+<div class="viewcode-block" id="NPZDMonitor"><a class="viewcode-back" href="../../../reference/diagnostics.html#veros_bgc.diagnostics.npzd_monitor.NPZDMonitor">[docs]</a><span class="k">class</span> <span class="nc">NPZDMonitor</span><span class="p">(</span><span class="n">VerosDiagnostic</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Diagnostic monitoring nutrients and plankton concentrations</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;npzd&#39;</span>  <span class="c1">#:</span>
+    <span class="n">output_frequency</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1">#: Frequency (in seconds) in which output is written</span>
+    <span class="n">restart_attributes</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">save_graph</span> <span class="o">=</span> <span class="kc">False</span>  <span class="c1">#: Whether or not to save a graph of the selected dynamics</span>
+    <span class="n">graph_attr</span> <span class="o">=</span> <span class="p">{</span>  <span class="c1">#: Properties of the graph (graphviz)</span>
+        <span class="s1">&#39;splines&#39;</span><span class="p">:</span> <span class="s1">&#39;ortho&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;center&#39;</span><span class="p">:</span> <span class="s1">&#39;true&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;nodesep&#39;</span><span class="p">:</span> <span class="s1">&#39;0.05&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;node&#39;</span><span class="p">:</span> <span class="s1">&#39;square&#39;</span>
+    <span class="p">}</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">setup</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">output_variables</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">surface_out</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bottom_out</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">po4_total</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dic_total</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="nd">@veros_method</span>
+    <span class="k">def</span> <span class="nf">initialize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">vs</span><span class="p">):</span>
+        <span class="n">cell_volume</span> <span class="o">=</span> <span class="n">vs</span><span class="o">.</span><span class="n">area_t</span><span class="p">[</span><span class="mi">2</span><span class="p">:</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">:</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">]</span> <span class="o">*</span> <span class="n">vs</span><span class="o">.</span><span class="n">dzt</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">,</span> <span class="p">:]</span> <span class="o">*</span> <span class="n">vs</span><span class="o">.</span><span class="n">maskT</span><span class="p">[</span><span class="mi">2</span><span class="p">:</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">:</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="p">:]</span>
+
+        <span class="n">po4_sum</span> <span class="o">=</span> <span class="n">vs</span><span class="o">.</span><span class="n">phytoplankton</span><span class="p">[</span><span class="mi">2</span><span class="p">:</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">:</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="p">:,</span> <span class="n">vs</span><span class="o">.</span><span class="n">tau</span><span class="p">]</span> <span class="o">*</span> <span class="n">vs</span><span class="o">.</span><span class="n">redfield_ratio_PN</span>\
+                  <span class="o">+</span> <span class="n">vs</span><span class="o">.</span><span class="n">detritus</span><span class="p">[</span><span class="mi">2</span><span class="p">:</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">:</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="p">:,</span> <span class="n">vs</span><span class="o">.</span><span class="n">tau</span><span class="p">]</span> <span class="o">*</span> <span class="n">vs</span><span class="o">.</span><span class="n">redfield_ratio_PN</span>\
+                  <span class="o">+</span> <span class="n">vs</span><span class="o">.</span><span class="n">zooplankton</span><span class="p">[</span><span class="mi">2</span><span class="p">:</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">:</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="p">:,</span> <span class="n">vs</span><span class="o">.</span><span class="n">tau</span><span class="p">]</span> <span class="o">*</span> <span class="n">vs</span><span class="o">.</span><span class="n">redfield_ratio_PN</span>\
+                  <span class="o">+</span> <span class="n">vs</span><span class="o">.</span><span class="n">po4</span><span class="p">[</span><span class="mi">2</span><span class="p">:</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">:</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="p">:,</span> <span class="n">vs</span><span class="o">.</span><span class="n">tau</span><span class="p">]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">po4_total</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">po4_sum</span> <span class="o">*</span> <span class="n">cell_volume</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">vs</span><span class="o">.</span><span class="n">enable_carbon</span><span class="p">:</span>
+            <span class="n">dic_sum</span> <span class="o">=</span> <span class="n">vs</span><span class="o">.</span><span class="n">phytoplankton</span><span class="p">[</span><span class="mi">2</span><span class="p">:</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">:</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="p">:,</span> <span class="n">vs</span><span class="o">.</span><span class="n">tau</span><span class="p">]</span> <span class="o">*</span> <span class="n">vs</span><span class="o">.</span><span class="n">redfield_ratio_CN</span>\
+                      <span class="o">+</span> <span class="n">vs</span><span class="o">.</span><span class="n">detritus</span><span class="p">[</span><span class="mi">2</span><span class="p">:</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">:</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="p">:,</span> <span class="n">vs</span><span class="o">.</span><span class="n">tau</span><span class="p">]</span> <span class="o">*</span> <span class="n">vs</span><span class="o">.</span><span class="n">redfield_ratio_CN</span>\
+                      <span class="o">+</span> <span class="n">vs</span><span class="o">.</span><span class="n">zooplankton</span><span class="p">[</span><span class="mi">2</span><span class="p">:</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">:</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="p">:,</span> <span class="n">vs</span><span class="o">.</span><span class="n">tau</span><span class="p">]</span> <span class="o">*</span> <span class="n">vs</span><span class="o">.</span><span class="n">redfield_ratio_CN</span>\
+                      <span class="o">+</span> <span class="n">vs</span><span class="o">.</span><span class="n">dic</span><span class="p">[</span><span class="mi">2</span><span class="p">:</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">:</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="p">:,</span> <span class="n">vs</span><span class="o">.</span><span class="n">tau</span><span class="p">]</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">dic_total</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">dic_sum</span> <span class="o">*</span> <span class="n">cell_volume</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">diagnose</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">vs</span><span class="p">):</span>
+        <span class="k">pass</span>
+
+    <span class="nd">@veros_method</span>
+    <span class="k">def</span> <span class="nf">output</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">vs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Print NPZD interaction graph</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">save_graph</span><span class="p">:</span>
+            <span class="kn">from</span> <span class="nn">graphviz</span> <span class="k">import</span> <span class="n">Digraph</span>
+            <span class="n">npzd_graph</span> <span class="o">=</span> <span class="n">Digraph</span><span class="p">(</span><span class="s1">&#39;npzd_dynamics&#39;</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="s1">&#39;npzd_dynamics.gv&#39;</span><span class="p">)</span>
+            <span class="n">label_prefix</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="se">\\</span><span class="s1">tiny &#39;</span>  <span class="c1"># should be selectable in settings allows for better exporting to tex</span>
+            <span class="n">label_prefix</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+
+            <span class="c1"># Create a node for all selected tracers</span>
+            <span class="c1"># Drawing edges also creates nodes, so this just ensures, we se it,</span>
+            <span class="c1"># when there are no connections to a node</span>
+            <span class="k">for</span> <span class="n">tracer</span><span class="p">,</span> <span class="n">tracer_data</span> <span class="ow">in</span> <span class="n">vs</span><span class="o">.</span><span class="n">npzd_tracers</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="n">npzd_graph</span><span class="o">.</span><span class="n">node</span><span class="p">(</span><span class="n">tracer</span><span class="p">)</span>
+
+                <span class="c1"># If a tracer has the sinking_speed attribute indicate on the graph</span>
+                <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">tracer_data</span><span class="p">,</span> <span class="s1">&#39;sinking_speed&#39;</span><span class="p">):</span>
+                    <span class="n">npzd_graph</span><span class="o">.</span><span class="n">node</span><span class="p">(</span><span class="s1">&#39;Bottom&#39;</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="s1">&#39;square&#39;</span><span class="p">)</span>
+                    <span class="n">npzd_graph</span><span class="o">.</span><span class="n">edge</span><span class="p">(</span><span class="n">tracer</span><span class="p">,</span> <span class="s1">&#39;Bottom&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">label_prefix</span> <span class="o">+</span> <span class="s1">&#39;sinking&#39;</span><span class="p">,</span> <span class="n">lblstyle</span><span class="o">=</span><span class="s1">&#39;sloped,above&#39;</span><span class="p">)</span>
+
+            <span class="c1"># Common source rules are split up into several rules</span>
+            <span class="c1"># This causes a duplication of the first registerd rule</span>
+            <span class="c1"># Which should not be shown, so if there is more than one of them selected,</span>
+            <span class="c1"># The source edge should not be displayed, because it is already there</span>
+            <span class="n">skiprules</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">rule</span> <span class="ow">in</span> <span class="n">vs</span><span class="o">.</span><span class="n">common_source_rules</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="c1"># Construct the list of rule names</span>
+                <span class="n">rule_names</span> <span class="o">=</span> <span class="p">[</span><span class="n">name</span> <span class="o">+</span> <span class="s1">&#39;_&#39;</span> <span class="o">+</span> <span class="n">rule</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]]</span> <span class="o">+</span> <span class="p">[</span><span class="n">name</span> <span class="o">+</span> <span class="s1">&#39;_&#39;</span> <span class="o">+</span> <span class="n">rule</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">rule</span><span class="p">))]</span>
+
+                <span class="c1"># If there is more than one indicate, that it should be skipped from drawing</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">rule_names</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                    <span class="n">skiprules</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">vs</span><span class="o">.</span><span class="n">npzd_available_rules</span><span class="p">[</span><span class="n">rule_names</span><span class="p">[</span><span class="mi">0</span><span class="p">]])</span>
+
+            <span class="c1"># Draw primary rules</span>
+            <span class="k">for</span> <span class="n">rule</span> <span class="ow">in</span> <span class="n">vs</span><span class="o">.</span><span class="n">npzd_rules</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">rule</span> <span class="ow">in</span> <span class="n">skiprules</span><span class="p">:</span>
+                    <span class="k">continue</span>
+
+                <span class="n">npzd_graph</span><span class="o">.</span><span class="n">edge</span><span class="p">(</span><span class="n">rule</span><span class="o">.</span><span class="n">source</span><span class="p">,</span> <span class="n">rule</span><span class="o">.</span><span class="n">sink</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">label_prefix</span> <span class="o">+</span> <span class="n">rule</span><span class="o">.</span><span class="n">label</span><span class="p">,</span> <span class="n">lblstyle</span><span class="o">=</span><span class="s1">&#39;sloped, above&#39;</span><span class="p">)</span>
+
+            <span class="c1"># Draw pre rules dotted</span>
+            <span class="k">for</span> <span class="n">rule</span> <span class="ow">in</span> <span class="n">vs</span><span class="o">.</span><span class="n">npzd_pre_rules</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">rule</span> <span class="ow">in</span> <span class="n">skiprules</span><span class="p">:</span>
+                    <span class="k">continue</span>
+
+                <span class="n">npzd_graph</span><span class="o">.</span><span class="n">edge</span><span class="p">(</span><span class="n">rule</span><span class="o">.</span><span class="n">source</span><span class="p">,</span> <span class="n">rule</span><span class="o">.</span><span class="n">sink</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">label_prefix</span> <span class="o">+</span> <span class="n">rule</span><span class="o">.</span><span class="n">label</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="s1">&#39;dotted&#39;</span><span class="p">,</span> <span class="n">lblstyle</span><span class="o">=</span><span class="s1">&#39;sloped, above&#39;</span><span class="p">)</span>
+
+            <span class="c1"># Draw post rules dashed</span>
+            <span class="k">for</span> <span class="n">rule</span> <span class="ow">in</span> <span class="n">vs</span><span class="o">.</span><span class="n">npzd_post_rules</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">rule</span> <span class="ow">in</span> <span class="n">skiprules</span><span class="p">:</span>
+                    <span class="k">continue</span>
+
+                <span class="n">npzd_graph</span><span class="o">.</span><span class="n">edge</span><span class="p">(</span><span class="n">rule</span><span class="o">.</span><span class="n">source</span><span class="p">,</span> <span class="n">rule</span><span class="o">.</span><span class="n">sink</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">label_prefix</span> <span class="o">+</span> <span class="n">rule</span><span class="o">.</span><span class="n">label</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="s1">&#39;dashed&#39;</span><span class="p">,</span> <span class="n">lblstyle</span><span class="o">=</span><span class="s1">&#39;sloped, above&#39;</span><span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">save_graph</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="n">npzd_graph</span><span class="o">.</span><span class="n">render</span><span class="p">(</span><span class="s1">&#39;npzd_graph&#39;</span><span class="p">,</span> <span class="n">view</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Total phosphorus should be (approximately) constant</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">cell_volume</span> <span class="o">=</span> <span class="n">vs</span><span class="o">.</span><span class="n">area_t</span><span class="p">[</span><span class="mi">2</span><span class="p">:</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">:</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">]</span> <span class="o">*</span> <span class="n">vs</span><span class="o">.</span><span class="n">dzt</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">,</span> <span class="p">:]</span> <span class="o">*</span> <span class="n">vs</span><span class="o">.</span><span class="n">maskT</span><span class="p">[</span><span class="mi">2</span><span class="p">:</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">:</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="p">:]</span>
+
+        <span class="n">po4_sum</span> <span class="o">=</span> <span class="n">vs</span><span class="o">.</span><span class="n">phytoplankton</span><span class="p">[</span><span class="mi">2</span><span class="p">:</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">:</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="p">:,</span> <span class="n">vs</span><span class="o">.</span><span class="n">tau</span><span class="p">]</span> <span class="o">*</span> <span class="n">vs</span><span class="o">.</span><span class="n">redfield_ratio_PN</span>\
+                  <span class="o">+</span> <span class="n">vs</span><span class="o">.</span><span class="n">detritus</span><span class="p">[</span><span class="mi">2</span><span class="p">:</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">:</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="p">:,</span> <span class="n">vs</span><span class="o">.</span><span class="n">tau</span><span class="p">]</span> <span class="o">*</span> <span class="n">vs</span><span class="o">.</span><span class="n">redfield_ratio_PN</span>\
+                  <span class="o">+</span> <span class="n">vs</span><span class="o">.</span><span class="n">zooplankton</span><span class="p">[</span><span class="mi">2</span><span class="p">:</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">:</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="p">:,</span> <span class="n">vs</span><span class="o">.</span><span class="n">tau</span><span class="p">]</span> <span class="o">*</span> <span class="n">vs</span><span class="o">.</span><span class="n">redfield_ratio_PN</span>\
+                  <span class="o">+</span> <span class="n">vs</span><span class="o">.</span><span class="n">po4</span><span class="p">[</span><span class="mi">2</span><span class="p">:</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">:</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="p">:,</span> <span class="n">vs</span><span class="o">.</span><span class="n">tau</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="n">vs</span><span class="o">.</span><span class="n">enable_carbon</span><span class="p">:</span>
+            <span class="n">dic_sum</span> <span class="o">=</span> <span class="n">vs</span><span class="o">.</span><span class="n">phytoplankton</span><span class="p">[</span><span class="mi">2</span><span class="p">:</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">:</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="p">:,</span> <span class="n">vs</span><span class="o">.</span><span class="n">tau</span><span class="p">]</span> <span class="o">*</span> <span class="n">vs</span><span class="o">.</span><span class="n">redfield_ratio_CN</span>\
+                      <span class="o">+</span> <span class="n">vs</span><span class="o">.</span><span class="n">detritus</span><span class="p">[</span><span class="mi">2</span><span class="p">:</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">:</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="p">:,</span> <span class="n">vs</span><span class="o">.</span><span class="n">tau</span><span class="p">]</span> <span class="o">*</span> <span class="n">vs</span><span class="o">.</span><span class="n">redfield_ratio_CN</span>\
+                      <span class="o">+</span> <span class="n">vs</span><span class="o">.</span><span class="n">zooplankton</span><span class="p">[</span><span class="mi">2</span><span class="p">:</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">:</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="p">:,</span> <span class="n">vs</span><span class="o">.</span><span class="n">tau</span><span class="p">]</span> <span class="o">*</span> <span class="n">vs</span><span class="o">.</span><span class="n">redfield_ratio_CN</span>\
+                      <span class="o">+</span> <span class="n">vs</span><span class="o">.</span><span class="n">dic</span><span class="p">[</span><span class="mi">2</span><span class="p">:</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">:</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="p">:,</span> <span class="n">vs</span><span class="o">.</span><span class="n">tau</span><span class="p">]</span>
+
+        <span class="n">po4_total</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">po4_sum</span> <span class="o">*</span> <span class="n">cell_volume</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">diagnostic</span><span class="p">(</span><span class="s1">&#39; total phosphorus: </span><span class="si">{}</span><span class="s1">, relative change: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">po4_total</span><span class="p">,</span> <span class="p">(</span><span class="n">po4_total</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">po4_total</span><span class="p">)</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">po4_total</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">po4_total</span> <span class="o">=</span> <span class="n">po4_total</span><span class="p">[</span><span class="o">...</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="n">vs</span><span class="o">.</span><span class="n">enable_carbon</span><span class="p">:</span>
+            <span class="n">dic_total</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">dic_sum</span> <span class="o">*</span> <span class="n">cell_volume</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">diagnostic</span><span class="p">(</span><span class="s1">&#39; total DIC: </span><span class="si">{}</span><span class="s1">, relative change: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">dic_total</span><span class="p">,</span> <span class="p">(</span><span class="n">dic_total</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">dic_total</span><span class="p">)</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">dic_total</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">dic_total</span> <span class="o">=</span> <span class="n">dic_total</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+        <span class="k">for</span> <span class="n">var</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">output_variables</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">var</span> <span class="ow">in</span> <span class="n">vs</span><span class="o">.</span><span class="n">recycled</span><span class="p">:</span>
+                <span class="n">recycled_total</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">vs</span><span class="o">.</span><span class="n">recycled</span><span class="p">[</span><span class="n">var</span><span class="p">][</span><span class="mi">2</span><span class="p">:</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">:</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="p">:]</span> <span class="o">*</span> <span class="n">cell_volume</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">recycled_total</span> <span class="o">=</span> <span class="mi">0</span>
+
+            <span class="k">if</span> <span class="n">var</span> <span class="ow">in</span> <span class="n">vs</span><span class="o">.</span><span class="n">mortality</span><span class="p">:</span>
+                <span class="n">mortality_total</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">vs</span><span class="o">.</span><span class="n">mortality</span><span class="p">[</span><span class="n">var</span><span class="p">][</span><span class="mi">2</span><span class="p">:</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">:</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="p">:]</span> <span class="o">*</span> <span class="n">cell_volume</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">mortality_total</span> <span class="o">=</span> <span class="mi">0</span>
+
+            <span class="k">if</span> <span class="n">var</span> <span class="ow">in</span> <span class="n">vs</span><span class="o">.</span><span class="n">net_primary_production</span><span class="p">:</span>
+                <span class="n">npp_total</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">vs</span><span class="o">.</span><span class="n">net_primary_production</span><span class="p">[</span><span class="n">var</span><span class="p">][</span><span class="mi">2</span><span class="p">:</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">:</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="p">:]</span> <span class="o">*</span> <span class="n">cell_volume</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">npp_total</span> <span class="o">=</span> <span class="mi">0</span>
+
+            <span class="k">if</span> <span class="n">var</span> <span class="ow">in</span> <span class="n">vs</span><span class="o">.</span><span class="n">grazing</span><span class="p">:</span>
+                <span class="n">grazing_total</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">vs</span><span class="o">.</span><span class="n">grazing</span><span class="p">[</span><span class="n">var</span><span class="p">][</span><span class="mi">2</span><span class="p">:</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">:</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="p">:]</span> <span class="o">*</span> <span class="n">cell_volume</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">grazing_total</span> <span class="o">=</span> <span class="mi">0</span>
+
+            <span class="n">logger</span><span class="o">.</span><span class="n">diagnostic</span><span class="p">(</span><span class="s1">&#39; total recycled </span><span class="si">{}</span><span class="s1">: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">var</span><span class="p">,</span> <span class="n">recycled_total</span><span class="p">))</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">diagnostic</span><span class="p">(</span><span class="s1">&#39; total mortality </span><span class="si">{}</span><span class="s1">: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">var</span><span class="p">,</span> <span class="n">mortality_total</span><span class="p">))</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">diagnostic</span><span class="p">(</span><span class="s1">&#39; total npp </span><span class="si">{}</span><span class="s1">: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">var</span><span class="p">,</span> <span class="n">npp_total</span><span class="p">))</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">diagnostic</span><span class="p">(</span><span class="s1">&#39; total grazed </span><span class="si">{}</span><span class="s1">: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">var</span><span class="p">,</span> <span class="n">grazing_total</span><span class="p">))</span>
+
+        <span class="k">for</span> <span class="n">var</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">surface_out</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">diagnostic</span><span class="p">(</span><span class="s1">&#39; mean </span><span class="si">{}</span><span class="s1"> surface concentration: </span><span class="si">{}</span><span class="s1"> mmol/m^3&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">var</span><span class="p">,</span> <span class="n">vs</span><span class="o">.</span><span class="n">npzd_tracers</span><span class="p">[</span><span class="n">var</span><span class="p">][</span><span class="n">vs</span><span class="o">.</span><span class="n">maskT</span><span class="p">[:,</span> <span class="p">:,</span> <span class="o">-</span><span class="mi">1</span><span class="p">]]</span><span class="o">.</span><span class="n">mean</span><span class="p">()))</span>
+
+        <span class="k">for</span> <span class="n">var</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">bottom_out</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">diagnostic</span><span class="p">(</span><span class="s1">&#39; mean </span><span class="si">{}</span><span class="s1"> bottom concentration: </span><span class="si">{}</span><span class="s1"> mmol/m^3&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">var</span><span class="p">,</span> <span class="n">vs</span><span class="o">.</span><span class="n">npzd_tracers</span><span class="p">[</span><span class="n">var</span><span class="p">][</span><span class="n">vs</span><span class="o">.</span><span class="n">bottom_mask</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">()))</span>
+
+    <span class="k">def</span> <span class="nf">read_restart</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">vs</span><span class="p">):</span>
+        <span class="k">pass</span>
+
+    <span class="k">def</span> <span class="nf">write_restart</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">vs</span><span class="p">,</span> <span class="n">outfile</span><span class="p">):</span>
+        <span class="k">pass</span></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2017-2019, The Veros Team, NBI Copenhagen
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

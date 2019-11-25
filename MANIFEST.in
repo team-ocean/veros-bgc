@@ -1,0 +1,2 @@
+include versioneer.py
+include veros_bgc/_version.py

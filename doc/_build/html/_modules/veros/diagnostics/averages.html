@@ -1,0 +1,281 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>veros.diagnostics.averages &mdash; Veros-BGC 0+untagged.3.gb2fcfb2.dirty documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../../../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../../_static/doctools.js"></script>
+        <script type="text/javascript" src="../../../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> Veros-BGC
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0+untagged.3.gb2fcfb2.dirty
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../reference/setup-gallery.html">Setup gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../reference/diagnostics.html">Biogeochemistry Diagnostic</a></li>
+</ul>
+<p class="caption"><span class="caption-text">More Information</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference external" href="https://github.com/team-ocean/veros-bgc">Visit us on GitHub</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">Veros-BGC</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+      <li>veros.diagnostics.averages</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for veros.diagnostics.averages</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">namedtuple</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">copy</span>
+
+<span class="kn">from</span> <span class="nn">.diagnostic</span> <span class="k">import</span> <span class="n">VerosDiagnostic</span>
+<span class="kn">from</span> <span class="nn">..</span> <span class="k">import</span> <span class="n">veros_method</span>
+<span class="kn">from</span> <span class="nn">..variables</span> <span class="k">import</span> <span class="n">TIMESTEPS</span><span class="p">,</span> <span class="n">allocate</span>
+
+<span class="n">Running_sum</span> <span class="o">=</span> <span class="n">namedtuple</span><span class="p">(</span><span class="s1">&#39;Running_sum&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;var&#39;</span><span class="p">,</span> <span class="s1">&#39;sum&#39;</span><span class="p">))</span>
+
+
+<div class="viewcode-block" id="Averages"><a class="viewcode-back" href="../../../diagnostics.html#veros.diagnostics.averages.Averages">[docs]</a><span class="k">class</span> <span class="nc">Averages</span><span class="p">(</span><span class="n">VerosDiagnostic</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Time average output diagnostic.</span>
+
+<span class="sd">    All registered variables are summed up when :meth:`diagnose` is called,</span>
+<span class="sd">    and averaged and output upon calling :meth:`output`.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;averages&#39;</span> <span class="c1">#:</span>
+    <span class="n">output_path</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">{identifier}</span><span class="s1">.averages.nc&#39;</span>  <span class="c1">#: File to write to. May contain format strings that are replaced with Veros attributes.</span>
+    <span class="n">output_variables</span> <span class="o">=</span> <span class="kc">None</span> <span class="c1">#: Iterable containing all variables to be averaged. Changes have no effect after ``initialize`` has been called.</span>
+    <span class="n">output_frequency</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1">#: Frequency (in seconds) in which output is written.</span>
+    <span class="n">sampling_frequency</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1">#: Frequency (in seconds) in which variables are accumulated.</span>
+
+    <span class="nd">@veros_method</span>
+    <span class="k">def</span> <span class="nf">initialize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">vs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Register all variables to be averaged</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">average_nitts</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">average_vars</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">output_variables</span><span class="p">:</span>
+            <span class="k">return</span>
+        <span class="k">for</span> <span class="n">var</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">output_variables</span><span class="p">:</span>
+            <span class="n">var_data</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">vs</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="n">var</span><span class="p">])</span>
+            <span class="n">var_data</span><span class="o">.</span><span class="n">time_dependent</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_has_timestep_dim</span><span class="p">(</span><span class="n">vs</span><span class="p">,</span> <span class="n">var</span><span class="p">):</span>
+                <span class="n">var_data</span><span class="o">.</span><span class="n">dims</span> <span class="o">=</span> <span class="n">var_data</span><span class="o">.</span><span class="n">dims</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">var_sum</span> <span class="o">=</span> <span class="n">allocate</span><span class="p">(</span><span class="n">vs</span><span class="p">,</span> <span class="n">var_data</span><span class="o">.</span><span class="n">dims</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">average_vars</span><span class="p">[</span><span class="n">var</span><span class="p">]</span> <span class="o">=</span> <span class="n">Running_sum</span><span class="p">(</span><span class="n">var_data</span><span class="p">,</span> <span class="n">var_sum</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">initialize_output</span><span class="p">(</span><span class="n">vs</span><span class="p">,</span> <span class="p">{</span><span class="n">key</span><span class="p">:</span> <span class="n">runsum</span><span class="o">.</span><span class="n">var</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span>
+                                    <span class="n">runsum</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">average_vars</span><span class="o">.</span><span class="n">items</span><span class="p">()})</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_has_timestep_dim</span><span class="p">(</span><span class="n">vs</span><span class="p">,</span> <span class="n">var</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">vs</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="n">var</span><span class="p">]</span><span class="o">.</span><span class="n">dims</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="n">TIMESTEPS</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">diagnose</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">vs</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">average_nitts</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">var</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">average_vars</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_has_timestep_dim</span><span class="p">(</span><span class="n">vs</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+                <span class="n">var</span><span class="o">.</span><span class="n">sum</span><span class="p">[</span><span class="o">...</span><span class="p">]</span> <span class="o">+=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">vs</span><span class="p">,</span> <span class="n">key</span><span class="p">)[</span><span class="o">...</span><span class="p">,</span> <span class="n">vs</span><span class="o">.</span><span class="n">tau</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">var</span><span class="o">.</span><span class="n">sum</span><span class="p">[</span><span class="o">...</span><span class="p">]</span> <span class="o">+=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">vs</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">output</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">vs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Write averages to netcdf file and zero array</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">variable_metadata</span> <span class="o">=</span> <span class="p">{</span><span class="n">key</span><span class="p">:</span> <span class="n">runsum</span><span class="o">.</span><span class="n">var</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">runsum</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">average_vars</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_output_file_name</span><span class="p">(</span><span class="n">vs</span><span class="p">)):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">initialize_output</span><span class="p">(</span><span class="n">vs</span><span class="p">,</span> <span class="n">variable_metadata</span><span class="p">)</span>
+        <span class="n">variable_mean</span> <span class="o">=</span> <span class="p">{</span><span class="n">key</span><span class="p">:</span> <span class="n">runsum</span><span class="o">.</span><span class="n">sum</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">average_nitts</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span>
+                         <span class="n">runsum</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">average_vars</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">write_output</span><span class="p">(</span><span class="n">vs</span><span class="p">,</span> <span class="n">variable_metadata</span><span class="p">,</span> <span class="n">variable_mean</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">runsum</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">average_vars</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+            <span class="n">runsum</span><span class="o">.</span><span class="n">sum</span><span class="p">[</span><span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">average_nitts</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="k">def</span> <span class="nf">read_restart</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">vs</span><span class="p">,</span> <span class="n">infile</span><span class="p">):</span>
+        <span class="n">attributes</span><span class="p">,</span> <span class="n">variables</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_h5_restart</span><span class="p">(</span><span class="n">vs</span><span class="p">,</span> <span class="n">vs</span><span class="o">.</span><span class="n">variables</span><span class="p">,</span> <span class="n">infile</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">attributes</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">average_nitts</span> <span class="o">=</span> <span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;average_nitts&#39;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">variables</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">average_vars</span> <span class="o">=</span> <span class="p">{</span><span class="n">key</span><span class="p">:</span> <span class="n">Running_sum</span><span class="p">(</span><span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">vs</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="n">key</span><span class="p">]),</span> <span class="n">var</span><span class="p">)</span>
+                                 <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">var</span> <span class="ow">in</span> <span class="n">variables</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">runsum</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">average_vars</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">runsum</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">time_dependent</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_has_timestep_dim</span><span class="p">(</span><span class="n">vs</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+                <span class="n">runsum</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">dims</span> <span class="o">=</span> <span class="n">runsum</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">dims</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">write_restart</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">vs</span><span class="p">,</span> <span class="n">outfile</span><span class="p">):</span>
+        <span class="n">attributes</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;average_nitts&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">average_nitts</span><span class="p">}</span>
+        <span class="n">variables</span> <span class="o">=</span> <span class="p">{</span><span class="n">key</span><span class="p">:</span> <span class="n">runsum</span><span class="o">.</span><span class="n">sum</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">runsum</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">average_vars</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+        <span class="n">variable_metadata</span> <span class="o">=</span> <span class="p">{</span><span class="n">key</span><span class="p">:</span> <span class="n">runsum</span><span class="o">.</span><span class="n">var</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">runsum</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">average_vars</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">write_h5_restart</span><span class="p">(</span><span class="n">vs</span><span class="p">,</span> <span class="n">attributes</span><span class="p">,</span> <span class="n">variable_metadata</span><span class="p">,</span> <span class="n">variables</span><span class="p">,</span> <span class="n">outfile</span><span class="p">)</span></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2017-2019, The Veros Team, NBI Copenhagen
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

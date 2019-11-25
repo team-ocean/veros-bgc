@@ -1,0 +1,559 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>veros_bgc.core.npzd_tracers &mdash; Veros-BGC 0+untagged.3.gb2fcfb2.dirty documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../../../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../../_static/doctools.js"></script>
+        <script type="text/javascript" src="../../../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> Veros-BGC
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0+untagged.3.gb2fcfb2.dirty
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Usage</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../quickstart/user-guide.html">Basic usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quickstart/developer-guide.html">Custom rules and tracers</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../reference/setup-gallery.html">Setup gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../reference/settings.html">Available settings</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../reference/variables.html">Available variables</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../reference/diagnostics.html">Biogeochemistry diagnostic</a></li>
+</ul>
+<p class="caption"><span class="caption-text">More Information</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference external" href="https://readthedocs.io/veros">Veros core documentation</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://github.com/team-ocean/veros-bgc">Visit us on GitHub</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">Veros-BGC</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+      <li>veros_bgc.core.npzd_tracers</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for veros_bgc.core.npzd_tracers</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Classes for npzd tracers</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="kn">from</span> <span class="nn">veros</span> <span class="k">import</span> <span class="n">veros_method</span>
+
+<div class="viewcode-block" id="NPZD_tracer"><a class="viewcode-back" href="../../../quickstart/developer-guide.html#veros_bgc.core.npzd_tracers.NPZD_tracer">[docs]</a><span class="k">class</span> <span class="nc">NPZD_tracer</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Class for npzd tracers to store additional information about themselves.</span>
+
+<span class="sd">    Note</span>
+<span class="sd">    ----</span>
+<span class="sd">    Inhenrits from numpy.ndarray to make it work seamless with array operations</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    input_array : :obj:`numpy.ndarray`</span>
+<span class="sd">        Numpy array backing data</span>
+
+<span class="sd">    name : :obj:`str`</span>
+<span class="sd">        Identifier for the tracer, which must be unique within a given configuration</span>
+
+<span class="sd">    sinking_speed : :obj:`numpy.ndarray`, optional</span>
+<span class="sd">        Numpy array for how fast the tracer sinks in each cell</span>
+
+<span class="sd">    transport : :obj:`bool` = True, optional</span>
+<span class="sd">        Whether or not to include the tracer in physical transport</span>
+
+<span class="sd">    light_attenuation : :obj:`numpy.ndarray`, optional</span>
+<span class="sd">        Factor for how much light is blocked</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    name</span>
+<span class="sd">        Identifier for the tracer, which must be unique within a given configuration</span>
+
+<span class="sd">    description</span>
+<span class="sd">        Description of the tracer represented by the class</span>
+
+<span class="sd">    transport</span>
+<span class="sd">        Whether or not to include the tracer in physical transport</span>
+
+<span class="sd">    sinking_speed : :obj:`numpy.ndarray`, optional</span>
+<span class="sd">        If set: how fast the tracer sinks in each cell</span>
+
+<span class="sd">    light_attenuation : :obj:`numpy.ndarray`, optional</span>
+<span class="sd">        If set: Factor for how much light is blocked</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+
+    <span class="k">def</span> <span class="nf">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">input_array</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">sinking_speed</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">light_attenuation</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">transport</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                <span class="n">description</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+        <span class="n">obj</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">input_array</span><span class="p">)</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">sinking_speed</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">obj</span><span class="o">.</span><span class="n">sinking_speed</span> <span class="o">=</span> <span class="n">sinking_speed</span>
+        <span class="k">if</span> <span class="n">light_attenuation</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">obj</span><span class="o">.</span><span class="n">light_attenuation</span> <span class="o">=</span> <span class="n">light_attenuation</span>
+
+        <span class="n">obj</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
+        <span class="n">obj</span><span class="o">.</span><span class="n">transport</span> <span class="o">=</span> <span class="n">transport</span>
+
+        <span class="k">return</span> <span class="n">obj</span>
+
+    <span class="k">def</span> <span class="nf">__array_finalize__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">obj</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span>
+
+        <span class="c1"># If we are slicing, obj will have __dir__ therefore we need to set attributes</span>
+        <span class="c1"># on new sliced array</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="s2">&quot;__dir__&quot;</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">attribute</span> <span class="ow">in</span> <span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="nb">dir</span><span class="p">(</span><span class="n">obj</span><span class="p">))</span> <span class="o">-</span> <span class="nb">set</span><span class="p">(</span><span class="nb">dir</span><span class="p">(</span><span class="bp">self</span><span class="p">))):</span>
+                <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attribute</span><span class="p">,</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">attribute</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="Recyclable_tracer"><a class="viewcode-back" href="../../../quickstart/developer-guide.html#veros_bgc.core.npzd_tracers.Recyclable_tracer">[docs]</a><span class="k">class</span> <span class="nc">Recyclable_tracer</span><span class="p">(</span><span class="n">NPZD_tracer</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; A recyclable tracer</span>
+
+<span class="sd">    This would be tracer, which may be a tracer like detritus, which can be recycled</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    input_array : :obj:`numpy.ndarray`</span>
+<span class="sd">        Numpy array backing data</span>
+
+<span class="sd">    name : :obj:`str`</span>
+<span class="sd">        Identifier for the tracer, which must be unique within a given configuration</span>
+
+<span class="sd">    recycling_rate</span>
+<span class="sd">        A factor scaling the recycling by the population size</span>
+
+<span class="sd">    **kwargs</span>
+<span class="sd">        All named parameters accepted by super class</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    recycling_rate</span>
+<span class="sd">        A factor scaling the recycling by the population size</span>
+
+<span class="sd">    + All attributes held by super class</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">input_array</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">recycling_rate</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">obj</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">input_array</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="n">obj</span><span class="o">.</span><span class="n">recycling_rate</span> <span class="o">=</span> <span class="n">recycling_rate</span>
+
+        <span class="k">return</span> <span class="n">obj</span>
+
+    <span class="nd">@veros_method</span><span class="p">(</span><span class="n">inline</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">recycle</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">vs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Recycling is temperature dependant by :obj:`vs.bct`</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">vs</span><span class="o">.</span><span class="n">bct</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">recycling_rate</span> <span class="o">*</span> <span class="bp">self</span></div>
+
+
+<div class="viewcode-block" id="Plankton"><a class="viewcode-back" href="../../../quickstart/developer-guide.html#veros_bgc.core.npzd_tracers.Plankton">[docs]</a><span class="k">class</span> <span class="nc">Plankton</span><span class="p">(</span><span class="n">Recyclable_tracer</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Class for plankton object, which is both recyclable and displays mortality</span>
+
+<span class="sd">    This class is intended as a base for phytoplankton and zooplankton and not</span>
+<span class="sd">    as a standalone class</span>
+
+<span class="sd">    Note</span>
+<span class="sd">    ----</span>
+<span class="sd">    Typically, it would desirable to also set light attenuation</span>
+
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    input_array : :obj:`numpy.ndarray`</span>
+<span class="sd">        Numpy array backing data</span>
+
+<span class="sd">    name : :obj:`str`</span>
+<span class="sd">        Identifier for the tracer, which must be unique within a given configuration</span>
+
+<span class="sd">    mortality_rate</span>
+<span class="sd">        Rate at which the tracer is dying in mortality method</span>
+
+<span class="sd">    **kwargs</span>
+<span class="sd">        All named parameters accepted by super class</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    mortality_rate</span>
+<span class="sd">        Rate at which the tracer is dying in mortality method</span>
+
+<span class="sd">    + All attributes held by super class</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">input_array</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">mortality_rate</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">obj</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">input_array</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="n">obj</span><span class="o">.</span><span class="n">mortality_rate</span> <span class="o">=</span> <span class="n">mortality_rate</span>
+        <span class="k">return</span> <span class="n">obj</span>
+
+    <span class="nd">@veros_method</span><span class="p">(</span><span class="n">inline</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">mortality</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">vs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        The mortality rate scales linearly with population size</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">mortality_rate</span></div>
+
+
+<div class="viewcode-block" id="Phytoplankton"><a class="viewcode-back" href="../../../quickstart/developer-guide.html#veros_bgc.core.npzd_tracers.Phytoplankton">[docs]</a><span class="k">class</span> <span class="nc">Phytoplankton</span><span class="p">(</span><span class="n">Plankton</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Phytoplankton also has primary production</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    input_array : :obj:`numpy.ndarray`</span>
+<span class="sd">        Numpy array backing data</span>
+
+<span class="sd">    name : :obj:`str`</span>
+<span class="sd">        Identifier for the tracer, which must be unique within a given configuration</span>
+
+<span class="sd">    growth_parameter</span>
+<span class="sd">        Scaling factor for maximum potential growth</span>
+
+<span class="sd">    **kwargs</span>
+<span class="sd">        All named parameters accepted by super class</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    growth_parameter</span>
+<span class="sd">        Scaling factor for maximum potential growth</span>
+
+<span class="sd">    + All attributes held by super class</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">input_array</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">growth_parameter</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">obj</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">input_array</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="n">obj</span><span class="o">.</span><span class="n">growth_parameter</span> <span class="o">=</span> <span class="n">growth_parameter</span>
+
+        <span class="k">return</span> <span class="n">obj</span>
+
+    <span class="nd">@veros_method</span><span class="p">(</span><span class="n">inline</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">potential_growth</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">vs</span><span class="p">,</span> <span class="n">grid_light</span><span class="p">,</span> <span class="n">light_attenuation</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Light limited growth, not limited growth &quot;&quot;&quot;</span>
+        <span class="n">f1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">light_attenuation</span><span class="p">)</span>  <span class="c1"># available light</span>
+        <span class="n">jmax</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">growth_parameter</span> <span class="o">*</span> <span class="n">vs</span><span class="o">.</span><span class="n">bct</span>  <span class="c1"># maximum growth</span>
+        <span class="n">gd</span> <span class="o">=</span> <span class="n">jmax</span> <span class="o">*</span> <span class="n">vs</span><span class="o">.</span><span class="n">dayfrac</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">,</span> <span class="p">:,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">]</span>  <span class="c1"># growth in fraction of day</span>
+        <span class="n">avej</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_avg_J</span><span class="p">(</span><span class="n">vs</span><span class="p">,</span> <span class="n">f1</span><span class="p">,</span> <span class="n">gd</span><span class="p">,</span> <span class="n">grid_light</span><span class="p">,</span> <span class="n">light_attenuation</span><span class="p">)</span>  <span class="c1"># light limited growth</span>
+
+        <span class="k">return</span> <span class="n">jmax</span><span class="p">,</span> <span class="n">avej</span>
+
+    <span class="nd">@veros_method</span><span class="p">(</span><span class="n">inline</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">_avg_J</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">vs</span><span class="p">,</span> <span class="n">f1</span><span class="p">,</span> <span class="n">gd</span><span class="p">,</span> <span class="n">grid_light</span><span class="p">,</span> <span class="n">light_attenuation</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Average light over a triuneral cycle</span>
+
+<span class="sd">        Note</span>
+<span class="sd">        ----</span>
+<span class="sd">        This calculation is only valid if grid_light / gd &lt; 20</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">u1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="n">grid_light</span> <span class="o">/</span> <span class="n">gd</span><span class="p">,</span> <span class="n">vs</span><span class="o">.</span><span class="n">u1_min</span><span class="p">)</span>
+        <span class="n">u2</span> <span class="o">=</span> <span class="n">u1</span> <span class="o">*</span> <span class="n">f1</span>
+
+        <span class="c1"># NOTE: There is an approximation here: u1 &lt; 20</span>
+        <span class="n">phi1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">u1</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">u1</span><span class="o">**</span><span class="mi">2</span><span class="p">))</span> <span class="o">-</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">u1</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="n">u1</span>
+        <span class="n">phi2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">u2</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">u2</span><span class="o">**</span><span class="mi">2</span><span class="p">))</span> <span class="o">-</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">u2</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="n">u2</span>
+
+        <span class="k">return</span> <span class="n">gd</span> <span class="o">*</span> <span class="p">(</span><span class="n">phi1</span> <span class="o">-</span> <span class="n">phi2</span><span class="p">)</span> <span class="o">/</span> <span class="n">light_attenuation</span></div>
+
+
+<div class="viewcode-block" id="Zooplankton"><a class="viewcode-back" href="../../../quickstart/developer-guide.html#veros_bgc.core.npzd_tracers.Zooplankton">[docs]</a><span class="k">class</span> <span class="nc">Zooplankton</span><span class="p">(</span><span class="n">Plankton</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Zooplankton displays quadratic mortality rate but otherwise is similar to ordinary phytoplankton</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    input_array : :obj:`numpy.ndarray`</span>
+<span class="sd">        Numpy array backing data</span>
+
+<span class="sd">    name : :obj:`str`</span>
+<span class="sd">        Identifier for the tracer, which must be unique within a given configuration</span>
+
+<span class="sd">    max_grazing</span>
+<span class="sd">        Scaling factor for maximum grazing rate</span>
+
+<span class="sd">    grazing_saturation_constant</span>
+<span class="sd">        Saturation in Michaelis-Menten</span>
+
+<span class="sd">    grazing_preferences</span>
+<span class="sd">        Dictionary of preferences for grazing on other tracers</span>
+
+<span class="sd">    assimilation_efficiency</span>
+<span class="sd">        Fraction of grazed material ingested</span>
+
+<span class="sd">    growth_efficiency</span>
+<span class="sd">        Fraction of ingested material resulting in growth</span>
+
+<span class="sd">    maximum_growth_temperature : = 20</span>
+<span class="sd">        Temperature in Celsius where increasing temperature no longer increases grazing</span>
+
+<span class="sd">    **kwargs</span>
+<span class="sd">        All named parameters accepted by super class</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    max_grazing</span>
+<span class="sd">        Scaling factor for maximum grazing rate</span>
+
+<span class="sd">    grazing_saturation_constant</span>
+<span class="sd">        Saturation in Michaelis-Menten</span>
+
+<span class="sd">    grazing_preferences</span>
+<span class="sd">        Dictionary of preferences for grazing on other tracers</span>
+
+<span class="sd">    assimilation_efficiency</span>
+<span class="sd">        Fraction of grazed material ingested</span>
+
+<span class="sd">    growth_efficiency</span>
+<span class="sd">        Fraction of ingested material resulting in growth</span>
+
+<span class="sd">    maximum_growth_temperature</span>
+<span class="sd">        Temperature in Celsius where increasing temperature no longer increases grazing</span>
+
+<span class="sd">    + All attributes held by super class</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">input_array</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">max_grazing</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">grazing_saturation_constant</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                <span class="n">grazing_preferences</span><span class="o">=</span><span class="p">{},</span> <span class="n">assimilation_efficiency</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                <span class="n">growth_efficiency</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                <span class="n">maximum_growth_temperature</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">obj</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">input_array</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="n">obj</span><span class="o">.</span><span class="n">max_grazing</span> <span class="o">=</span> <span class="n">max_grazing</span>
+        <span class="n">obj</span><span class="o">.</span><span class="n">grazing_saturation_constant</span> <span class="o">=</span> <span class="n">grazing_saturation_constant</span>
+        <span class="n">obj</span><span class="o">.</span><span class="n">grazing_preferences</span> <span class="o">=</span> <span class="n">grazing_preferences</span>
+        <span class="n">obj</span><span class="o">.</span><span class="n">assimilation_efficiency</span> <span class="o">=</span> <span class="n">assimilation_efficiency</span>
+        <span class="n">obj</span><span class="o">.</span><span class="n">growth_efficiency</span> <span class="o">=</span> <span class="n">growth_efficiency</span>
+        <span class="n">obj</span><span class="o">.</span><span class="n">maximum_growth_temperature</span> <span class="o">=</span> <span class="n">maximum_growth_temperature</span>
+        <span class="n">obj</span><span class="o">.</span><span class="n">_gmax</span> <span class="o">=</span> <span class="mi">0</span>  <span class="c1"># should be private</span>
+
+        <span class="k">return</span> <span class="n">obj</span>
+
+    <span class="nd">@veros_method</span><span class="p">(</span><span class="n">inline</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">update_internal</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">vs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Updates internal numbers, which are calculated only from Veros values</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_gmax</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_grazing</span> <span class="o">*</span> <span class="n">vs</span><span class="o">.</span><span class="n">bbio</span> <span class="o">**</span> <span class="p">(</span><span class="n">vs</span><span class="o">.</span><span class="n">cbio</span> <span class="o">*</span>
+                     <span class="n">np</span><span class="o">.</span><span class="n">minimum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">maximum_growth_temperature</span><span class="p">,</span> <span class="n">vs</span><span class="o">.</span><span class="n">temp</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">vs</span><span class="o">.</span><span class="n">tau</span><span class="p">]))</span>
+
+    <span class="nd">@veros_method</span><span class="p">(</span><span class="n">inline</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">mortality</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">vs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Zooplankton is modelled with a quadratic mortality</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">mortality_rate</span> <span class="o">*</span> <span class="bp">self</span> <span class="o">**</span> <span class="mi">2</span>
+
+    <span class="nd">@veros_method</span><span class="p">(</span><span class="n">inline</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">grazing</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">vs</span><span class="p">,</span> <span class="n">tracers</span><span class="p">,</span> <span class="n">flags</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Zooplankton grazing on set preys</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        tracers : dict</span>
+<span class="sd">            Alle tracers, which can be grazed upon, not the same as grazing preferences</span>
+
+<span class="sd">        flags : dict</span>
+<span class="sd">            Flags for all tracers indicating whether they have been depleted within</span>
+<span class="sd">            the current time step.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        Dictionaries for grazing, digestion, excretion and sloppy feeding.</span>
+<span class="sd">        Each grazed species is contained in the key corresponding to its name</span>
+
+<span class="sd">        Note</span>
+<span class="sd">        ----</span>
+<span class="sd">        The result of this method is primarily useful in rules</span>
+
+<span class="sd">        Note</span>
+<span class="sd">        ----</span>
+<span class="sd">        thetaZ is scaled by vs.redfield_ratio_PN. This may not be desirable in the general case</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">thetaZ</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">([</span><span class="n">pref_score</span> <span class="o">*</span> <span class="n">tracers</span><span class="p">[</span><span class="n">preference</span><span class="p">]</span> <span class="k">for</span> <span class="n">preference</span><span class="p">,</span> <span class="n">pref_score</span>
+                      <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">grazing_preferences</span><span class="o">.</span><span class="n">items</span><span class="p">()])</span>\
+                 <span class="o">+</span> <span class="n">vs</span><span class="o">.</span><span class="n">saturation_constant_Z_grazing</span> <span class="o">*</span> <span class="n">vs</span><span class="o">.</span><span class="n">redfield_ratio_PN</span>
+
+        <span class="n">ingestion</span> <span class="o">=</span> <span class="p">{</span><span class="n">preference</span><span class="p">:</span> <span class="n">pref_score</span> <span class="o">/</span> <span class="n">thetaZ</span> <span class="k">for</span> <span class="n">preference</span><span class="p">,</span> <span class="n">pref_score</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">grazing_preferences</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+
+        <span class="n">grazing</span> <span class="o">=</span> <span class="p">{</span><span class="n">preference</span><span class="p">:</span> <span class="n">flags</span><span class="p">[</span><span class="n">preference</span><span class="p">]</span> <span class="o">*</span> <span class="n">flags</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_gmax</span> <span class="o">*</span>
+                   <span class="n">ingestion</span><span class="p">[</span><span class="n">preference</span><span class="p">]</span> <span class="o">*</span> <span class="n">tracers</span><span class="p">[</span><span class="n">preference</span><span class="p">]</span> <span class="o">*</span> <span class="bp">self</span>
+                   <span class="k">for</span> <span class="n">preference</span> <span class="ow">in</span> <span class="n">ingestion</span><span class="p">}</span>
+
+        <span class="n">digestion</span> <span class="o">=</span> <span class="p">{</span><span class="n">preference</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">assimilation_efficiency</span> <span class="o">*</span> <span class="n">amount_grazed</span>
+                     <span class="k">for</span> <span class="n">preference</span><span class="p">,</span> <span class="n">amount_grazed</span> <span class="ow">in</span> <span class="n">grazing</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+
+        <span class="n">excretion</span> <span class="o">=</span> <span class="p">{</span><span class="n">preference</span><span class="p">:</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">growth_efficiency</span><span class="p">)</span> <span class="o">*</span> <span class="n">amount_digested</span>
+                     <span class="k">for</span> <span class="n">preference</span><span class="p">,</span> <span class="n">amount_digested</span> <span class="ow">in</span> <span class="n">digestion</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+
+        <span class="n">sloppy_feeding</span> <span class="o">=</span> <span class="p">{</span><span class="n">preference</span><span class="p">:</span> <span class="n">grazing</span><span class="p">[</span><span class="n">preference</span><span class="p">]</span> <span class="o">-</span> <span class="n">digestion</span><span class="p">[</span><span class="n">preference</span><span class="p">]</span>
+                          <span class="k">for</span> <span class="n">preference</span> <span class="ow">in</span> <span class="n">grazing</span><span class="p">}</span>
+
+        <span class="k">return</span> <span class="n">grazing</span><span class="p">,</span> <span class="n">digestion</span><span class="p">,</span> <span class="n">excretion</span><span class="p">,</span> <span class="n">sloppy_feeding</span></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2017-2019, The Veros Team, NBI Copenhagen
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
