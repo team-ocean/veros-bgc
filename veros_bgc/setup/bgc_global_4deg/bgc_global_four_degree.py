@@ -20,6 +20,12 @@ DATA_FILES = veros.tools.get_assets(
 
 class GlobalFourDegreeBGC(VerosSetup):
     """Global 4 degree model with 15 vertical levels and biogeochemistry.
+
+    Reference:
+        Steffen Ole Randrup Kristensen. (2019). Extending the Veros climate simulator with biochemistry.
+        Model design and AMOC collapse, MSc, 67p.
+        `<https://sid.erda.dk/share_redirect/CVvcrowL22/Thesis/SteffenRandrup_MSc_thesis.pdf>`_.
+
     """
     __veros_plugins__ = (veros_bgc,)
 
