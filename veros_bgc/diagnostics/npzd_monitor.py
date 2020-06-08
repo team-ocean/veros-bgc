@@ -163,7 +163,7 @@ class NPZDMonitor(VerosDiagnostic):
         for var in self.bottom_out:
             logger.diagnostic(' mean {} bottom concentration: {} mmol/m^3'.format(var, vs.npzd_tracers[var][vs.bottom_mask].mean()))
 
-    def read_restart(self, vs):
+    def read_restart(self, vs, infile):
         pass
 
     def write_restart(self, vs, outfile):
