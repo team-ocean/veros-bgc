@@ -183,7 +183,7 @@ def bottom_remineralization(vs, source, sink, scale):
     scale
         Factor to convert remineralized material to nutrient. Typically Redfield ratio.
     """
-    return {sink: vs.npzd_export[source][vs.bottom_mask] * scale}
+    return {sink: vs.npzd_export[source] * vs.bottom_mask * scale}
 
 
 @veros_method(inline=True)

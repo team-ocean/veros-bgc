@@ -158,7 +158,10 @@ def biogeochemistry(vs):
         # perform updates
         for update, boundary in npzd_updates:
             for key, value in update.items():
-                vs.temporary_tracers[key][boundary] += value * vs.dt_bio
+                if isinstance(boundary, (tuple, slice)):
+                    vs.temporary_tracers[key][boundary] += value * vs.dt_bio
+                else:
+                    vs.temporary_tracers[key] += value * vs.dt_bio * boundary
 
         # Import and export between layers
         # for tracer in vs.sinking_speeds:
