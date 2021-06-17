@@ -1,5 +1,10 @@
 :tocdepth: 5
 
+.. warning::
+
+   Veros-BGC is not yet compatible with Veros v1.x.x. The last compatible version is `v0.2.3 <https://veros.readthedocs.io/en/v0.2.3/>`_.
+
+
 A biogeochemistry module for Veros
 ==================================
 
