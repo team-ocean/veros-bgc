@@ -25,7 +25,7 @@ Operating System :: MacOS
 """
 
 INSTALL_REQUIRES = [
-    'veros>=0.2.1',
+    'veros>=0.2.1,<1.3.0',
     'graphviz'
 ]
 
