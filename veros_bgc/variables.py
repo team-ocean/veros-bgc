@@ -64,7 +64,7 @@ CONDITIONAL_VARIABLES = OrderedDict([
             'Atmospheric co2 concentration', T_HOR, 'ppmv',
             'Atmospheric co2 concentration')),
         ('cflux', Variable(
-            'DIC Flux', T_HOR, 'mmol/m^3/s',
+            'DIC Flux', T_HOR, 'mmol/m^2/s',
             'Flux of CO2 over the ocean-atmosphere bounday',
             output=True)),
         ('wind_speed', Variable(
