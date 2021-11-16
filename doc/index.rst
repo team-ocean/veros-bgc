@@ -12,7 +12,7 @@ Veros-BGC adds a full-fledged NPZD (Nutrients-Phytoplankton-Zooplankton-Detritus
 
 Veros-BGC is based on `MOBI <http://people.oregonstate.edu/~schmita2/Models/MOBI/index.html>`_ by `Andreas Schmittner <http://people.oregonstate.edu/~schmita2/>`_, Oregon State University.
 
-`Steffen Randrup <https://github.com/SteffenRandrup>`_ created Veros-BGC as a part of his Master's thesis.
+`Steffen Randrup <https://github.com/SteffenRandrup>`_ created Veros-BGC as a part of his `Master's thesis <https://sid.erda.dk/share_redirect/CVvcrowL22/Thesis/SteffenRandrup_MSc_thesis.pdf>`_.
 
 .. toctree::
    :maxdepth: 2
