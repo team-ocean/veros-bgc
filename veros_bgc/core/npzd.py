@@ -548,8 +548,8 @@ def setup_carbon_npzd_rules(vs):
 
     # redistribution fraction at bottom
     rcab = np.empty_like(vs.dic[..., 0])
-    rcab[:, : -1] = 1 / vs.dzt[-1]
-    rcab[:, :, :-1] = np.exp(zw[:-1] / vs.dcaco3) / vs.dzt[1:]
+    rcab[:, :, -1] = 1 / vs.dzt[-1]
+    rcab[:, :, :-1] = np.exp(zw[1:] / vs.dcaco3) / vs.dzt[:-1]
 
     # merge bottom into level k and reset every cell outside ocean
     vs.rcak[vs.bottom_mask] = rcab[vs.bottom_mask]
