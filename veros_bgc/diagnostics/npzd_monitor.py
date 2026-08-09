@@ -158,15 +158,15 @@ class NPZDMonitor(VerosDiagnostic):
             logger.diagnostic(' total grazed {}: {}'.format(var, grazing_total))
 
         for var in self.surface_out:
-            surface_mask = vs.maskT[:, :, -1].astype(np.bool)
-            surface = vs.npzd_tracers[var][:, :, -1, vs.tau]
+            surface_mask = vs.maskT[2:-2, 2:-2, -1].astype(np.bool)
+            surface = vs.npzd_tracers[var][2:-2, 2:-2, -1, vs.tau]
             logger.diagnostic(' mean {} surface concentration: {} mmol/m^3'.format(
                 var, surface[surface_mask].mean()))
 
         for var in self.bottom_out:
-            bottom = vs.npzd_tracers[var][:, :, :, vs.tau]
+            bottom = vs.npzd_tracers[var][2:-2, 2:-2, :, vs.tau]
             logger.diagnostic(' mean {} bottom concentration: {} mmol/m^3'.format(
-                var, bottom[vs.bottom_mask].mean()))
+                var, bottom[vs.bottom_mask[2:-2, 2:-2, :]].mean()))
 
     def read_restart(self, vs, infile):
         pass

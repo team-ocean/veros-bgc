@@ -90,6 +90,10 @@ def test_monitor_reports_current_surface_and_bottom_means():
         for j in range(3):
             vs.po4[i + 2, j + 2, diagnostic_kbot[i, j] - 1, vs.tau] = bottom_values[i, j]
 
+    vs.maskT[0, 0, -1] = True
+    vs.bottom_mask[0, 0, -1] = True
+    vs.po4[0, 0, -1, vs.tau] = 10000.0
+
     monitor = NPZDMonitor(None)
     monitor.surface_out = ["po4"]
     monitor.bottom_out = ["po4"]
