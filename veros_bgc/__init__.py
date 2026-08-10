@@ -14,6 +14,11 @@ from veros_bgc.settings import SETTINGS
 from veros_bgc.core.npzd import npzd, setupNPZD
 from veros_bgc.diagnostics.completed_snapshot import CompletedStateSnapshot
 from veros_bgc.diagnostics.npzd_monitor import NPZDMonitor
+from veros_bgc.diagnostics.stock_diagnostics import (
+    CompatibleAverages,
+    CompatibleEnergy,
+    CompatibleOverturning,
+)
 
 
 __VEROS_INTERFACE__ = dict(
@@ -23,5 +28,11 @@ __VEROS_INTERFACE__ = dict(
     settings=SETTINGS,
     variables=MAIN_VARIABLES,
     conditional_variables=CONDITIONAL_VARIABLES,
-    diagnostics=[NPZDMonitor, CompletedStateSnapshot],
+    diagnostics=[
+        NPZDMonitor,
+        CompatibleAverages,
+        CompatibleEnergy,
+        CompatibleOverturning,
+        CompletedStateSnapshot,
+    ],
 )
