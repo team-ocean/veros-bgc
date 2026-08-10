@@ -23,6 +23,11 @@ class ValidationError(RuntimeError):
     pass
 
 
+def validate_numeric_dtype(name, variable):
+    if not np.issubdtype(variable.dtype, np.number):
+        raise ValidationError("{} must have a numeric dtype".format(name))
+
+
 def wet_mask(variable, index):
     data = np.asarray(variable[index])
     fill_value = variable.attrs.get("_FillValue")
@@ -40,6 +45,7 @@ def validate_field(name, variable, snapshot_count):
                 name, tuple(variable.dimensions), expected_dimensions
             )
         )
+    validate_numeric_dtype(name, variable)
     if variable.shape[0] != snapshot_count:
         raise ValidationError(
             "{} has {} records, expected {}".format(name, variable.shape[0], snapshot_count)
@@ -87,6 +93,7 @@ def validate_snapshot(path):
                         tuple(time.dimensions), EXPECTED_DIMENSIONS["Time"]
                     )
                 )
+            validate_numeric_dtype("Time", time)
             if time.attrs.get("units") != "days":
                 raise ValidationError("Time units must be days")
 

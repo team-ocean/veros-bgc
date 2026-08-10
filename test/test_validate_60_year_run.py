@@ -64,7 +64,6 @@ def write_snapshot(
             time[:] = (np.arange(1, record_count + 1) * 360.0).reshape(
                 (record_count,) + (1,) * (len(time_dimensions) - 1)
             )
-
         for name in ("dic", "alkalinity", "pCO2", "hSWS", "cflux"):
             if name in missing_variables:
                 continue
@@ -72,12 +71,7 @@ def write_snapshot(
                 THREED_DIMENSIONS if name in ("dic", "alkalinity") else SURFACE_DIMENSIONS
             )
             dimensions = variable_dimensions.get(name, default_dimensions)
-            variable = outfile.create_variable(
-                name,
-                dimensions,
-                float,
-                fillvalue=FILL_VALUE,
-            )
+            variable = outfile.create_variable(name, dimensions, float, fillvalue=FILL_VALUE)
             variable[:] = field_data(name, variable.shape, record_count)
 
 
@@ -91,12 +85,51 @@ def test_validate_snapshot_accepts_veros_days_schema(tmp_path):
 
     metrics = validate_snapshot(snapshot)
 
-    assert metrics["snapshot_count"] == 60
-    assert metrics["status"] == "PASS"
-    assert metrics["dic_min"] == 2001.0
-    assert metrics["dic_year_1_max"] == 2001.0
-    assert metrics["dic_year_60_max"] == 2060.0
-    assert metrics["cflux_max"] == 30.0
+    assert metrics == {
+        "snapshot_count": 60,
+        "dic_min": 2001.0,
+        "dic_max": 2060.0,
+        "alkalinity_min": 2301.0,
+        "alkalinity_max": 2360.0,
+        "pCO2_min": 401.0,
+        "pCO2_max": 460.0,
+        "hSWS_min": 3e-8,
+        "hSWS_max": 9e-7,
+        "cflux_min": -29.0,
+        "cflux_max": 30.0,
+        "dic_year_1_max": 2001.0,
+        "dic_year_60_max": 2060.0,
+        "alkalinity_year_1_max": 2301.0,
+        "alkalinity_year_60_max": 2360.0,
+        "status": "PASS",
+    }
+
+
+@pytest.mark.parametrize(
+    "index,value",
+    [(1, 360.0), (24, 9001.0), (3, np.nan), (4, np.inf)],
+    ids=("duplicate", "misaligned", "nan", "infinite"),
+)
+def test_validate_snapshot_rejects_duplicate_misaligned_or_nonfinite_time(
+    tmp_path, index, value
+):
+    snapshot = tmp_path / "4deg.snapshot.nc"
+    write_snapshot(snapshot)
+    with h5netcdf.File(snapshot, "a") as outfile:
+        outfile.variables["Time"][index] = value
+
+    with pytest.raises(ValidationError, match="annual"):
+        validate_snapshot(snapshot)
+
+
+def test_validate_snapshot_rejects_offset_time_coordinate(tmp_path):
+    snapshot = tmp_path / "4deg.snapshot.nc"
+    write_snapshot(snapshot)
+    with h5netcdf.File(snapshot, "a") as outfile:
+        outfile.variables["Time"][:] += 0.5
+
+    with pytest.raises(ValidationError, match="annual"):
+        validate_snapshot(snapshot)
 
 
 def test_validate_snapshot_rejects_surface_field_without_time_dimension(tmp_path):
@@ -136,10 +169,7 @@ def test_validate_snapshot_rejects_wrong_snapshot_count(tmp_path):
 
 @pytest.mark.parametrize(
     "variable_dimensions",
-    [
-        {"dic": ("Time", "yt", "xt")},
-        {"pCO2": ("Time", "zt", "yt", "xt")},
-    ],
+    [{"dic": ("Time", "yt", "xt")}, {"pCO2": ("Time", "zt", "yt", "xt")}],
 )
 def test_validate_snapshot_rejects_wrong_required_field_dimensions(
     tmp_path, variable_dimensions
@@ -208,6 +238,16 @@ def test_validate_snapshot_rejects_nonfinite_wet_values_in_each_required_field(t
         validate_snapshot(snapshot)
 
 
+def test_validate_snapshot_rejects_infinite_required_field_value(tmp_path):
+    snapshot = tmp_path / "4deg.snapshot.nc"
+    write_snapshot(snapshot)
+    with h5netcdf.File(snapshot, "a") as outfile:
+        outfile.variables["pCO2"][3, 0, 0] = np.inf
+
+    with pytest.raises(ValidationError, match="pCO2.*non-finite"):
+        validate_snapshot(snapshot)
+
+
 def test_validate_snapshot_accepts_exact_hsws_bounds(tmp_path):
     snapshot = tmp_path / "4deg.snapshot.nc"
     write_snapshot(snapshot)
@@ -218,13 +258,24 @@ def test_validate_snapshot_accepts_exact_hsws_bounds(tmp_path):
     assert validate_snapshot(snapshot)["status"] == "PASS"
 
 
-def test_validate_snapshot_rejects_hsws_above_upper_bound(tmp_path):
+@pytest.mark.parametrize("value", (9e-11, 1.01e-6))
+def test_validate_snapshot_rejects_hsws_outside_inclusive_bounds(tmp_path, value):
     snapshot = tmp_path / "4deg.snapshot.nc"
     write_snapshot(snapshot)
     with h5netcdf.File(snapshot, "a") as outfile:
-        outfile.variables["hSWS"][3, 0, 0] = 1.01e-6
+        outfile.variables["hSWS"][3, 0, 0] = value
 
     with pytest.raises(ValidationError, match="hSWS.*outside"):
+        validate_snapshot(snapshot)
+
+
+def test_validate_snapshot_rejects_negative_dic(tmp_path):
+    snapshot = tmp_path / "4deg.snapshot.nc"
+    write_snapshot(snapshot)
+    with h5netcdf.File(snapshot, "a") as outfile:
+        outfile.variables["dic"][3, 0, 0, 0] = -1.0
+
+    with pytest.raises(ValidationError, match="dic.*negative"):
         validate_snapshot(snapshot)
 
 
@@ -238,25 +289,58 @@ def test_validate_snapshot_rejects_negative_alkalinity(tmp_path):
         validate_snapshot(snapshot)
 
 
-def test_validate_snapshot_rejects_dic_growth_at_ten_times_year_one(tmp_path):
+@pytest.mark.parametrize("value", (20010.0, 20011.0))
+def test_validate_snapshot_rejects_dic_growth_at_or_above_ten_times_year_one(
+    tmp_path, value
+):
     snapshot = tmp_path / "4deg.snapshot.nc"
     write_snapshot(snapshot)
     with h5netcdf.File(snapshot, "a") as outfile:
-        outfile.variables["dic"][59, 0, 0, 0] = 20010.0
+        outfile.variables["dic"][59, 0, 0, 0] = value
 
     with pytest.raises(ValidationError, match="dic.*ten times"):
         validate_snapshot(snapshot)
 
 
-def test_format_markdown_renders_validation_metrics(tmp_path):
+@pytest.mark.parametrize("value", (23010.0, 23011.0))
+def test_validate_snapshot_rejects_alkalinity_growth_at_or_above_ten_times_year_one(
+    tmp_path, value
+):
+    snapshot = tmp_path / "4deg.snapshot.nc"
+    write_snapshot(snapshot)
+    with h5netcdf.File(snapshot, "a") as outfile:
+        outfile.variables["alkalinity"][59, 0, 0, 0] = value
+
+    with pytest.raises(ValidationError, match="alkalinity.*ten times"):
+        validate_snapshot(snapshot)
+
+
+def test_format_markdown_renders_every_literal_metric_row(tmp_path):
     snapshot = tmp_path / "4deg.snapshot.nc"
     write_snapshot(snapshot)
 
     markdown = format_markdown(snapshot, validate_snapshot(snapshot))
 
+    assert [line for line in markdown.splitlines() if line.startswith("|")] == [
+        "| Check | Value |",
+        "| --- | ---: |",
+        "| Snapshots | 60 |",
+        "| DIC all-years min | 2001.0 |",
+        "| DIC all-years max | 2060.0 |",
+        "| DIC year-1 max | 2001.0 |",
+        "| DIC year-60 max | 2060.0 |",
+        "| Alkalinity all-years min | 2301.0 |",
+        "| Alkalinity all-years max | 2360.0 |",
+        "| Alkalinity year-1 max | 2301.0 |",
+        "| Alkalinity year-60 max | 2360.0 |",
+        "| pCO2 all-years min | 401.0 |",
+        "| pCO2 all-years max | 460.0 |",
+        "| hSWS all-years min | 3e-08 |",
+        "| hSWS all-years max | 9e-07 |",
+        "| cflux all-years min | -29.0 |",
+        "| cflux all-years max | 30.0 |",
+    ]
     assert "# MOBI parity 60-year validation" in markdown
-    assert "| Snapshots | 60 |" in markdown
-    assert "| DIC year-60 max | 2060.0 |" in markdown
     assert "Acceptance result: **PASS**" in markdown
 
 
@@ -272,7 +356,7 @@ def test_cli_renders_markdown_for_valid_snapshot(tmp_path):
     )
 
     assert result.returncode == 0
-    assert "| hSWS all-years max |" in result.stdout
+    assert "| hSWS all-years max | 9e-07 |" in result.stdout
     assert result.stderr == ""
 
 
