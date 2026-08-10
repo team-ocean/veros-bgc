@@ -7,7 +7,11 @@ import numpy as np
 
 from veros_bgc.run_protocol import (
     ProtocolError,
+    _fsync_directory,
+    fsync_file,
     load_manifest,
+    require_artifact,
+    sha256_file,
     validate_manifest,
     write_manifest_atomic,
 )
@@ -33,37 +37,99 @@ def _attributes_equal(left, right):
     )
 
 
+def _storage(variable):
+    dataset = variable._h5ds
+    return {
+        "chunks": dataset.chunks,
+        "compression": dataset.compression,
+        "compression_opts": dataset.compression_opts,
+        "shuffle": dataset.shuffle,
+        "fletcher32": dataset.fletcher32,
+        "fillvalue": np.asarray(dataset.fillvalue),
+    }
+
+
+def _storage_equal(left, right):
+    return (
+        left["chunks"] == right["chunks"]
+        and left["compression"] == right["compression"]
+        and left["compression_opts"] == right["compression_opts"]
+        and left["shuffle"] == right["shuffle"]
+        and left["fletcher32"] == right["fletcher32"]
+        and _values_equal(left["fillvalue"], right["fillvalue"])
+    )
+
+
 def _schema(variable):
-    return tuple(variable.dimensions), np.dtype(variable.dtype).str, _attributes(variable)
+    return (
+        tuple(variable.dimensions),
+        np.dtype(variable.dtype).str,
+        _attributes(variable),
+        _storage(variable),
+    )
 
 
-def _read_segment(path, reference=None):
+def _compare_snapshot_schema(reference, current):
+    if current["dimensions"] != reference["dimensions"]:
+        raise ProtocolError("snapshot schema dimensions do not match")
+    if current["schemas"].keys() != reference["schemas"].keys():
+        raise ProtocolError("snapshot schema variables do not match")
+    for name in reference["schemas"]:
+        left_dims, left_dtype, left_attrs, left_storage = reference["schemas"][name]
+        right_dims, right_dtype, right_attrs, right_storage = current["schemas"][name]
+        if (
+            (left_dims, left_dtype) != (right_dims, right_dtype)
+            or not _attributes_equal(left_attrs, right_attrs)
+            or not _storage_equal(left_storage, right_storage)
+        ):
+            raise ProtocolError("snapshot schema or storage mismatch for {}".format(name))
+    if not _attributes_equal(
+        reference["global_attributes"], current["global_attributes"]
+    ):
+        raise ProtocolError("snapshot schema global attributes do not match")
+    for name, expected in reference["static"].items():
+        if not _values_equal(current["static"][name], expected):
+            label = "mask mismatch" if name == "maskT" else "static mismatch"
+            raise ProtocolError("snapshot {} for {}".format(label, name))
+
+
+def _read_snapshot(path, expected_records=1, reference=None):
     try:
         with h5netcdf.File(path, "r") as infile:
             if "Time" not in infile.variables:
                 raise ProtocolError("snapshot schema is missing Time: {}".format(path))
             dimensions = {
-                name: len(dimension) for name, dimension in infile.dimensions.items()
+                name: {"size": len(dimension), "unlimited": dimension.isunlimited()}
+                for name, dimension in infile.dimensions.items()
             }
             schemas = {name: _schema(variable) for name, variable in infile.variables.items()}
-            if schemas["Time"][0] != ("Time",) or dimensions.get("Time") != 1:
-                raise ProtocolError("snapshot schema must contain one Time record: {}".format(path))
+            if (
+                schemas["Time"][0] != ("Time",)
+                or dimensions.get("Time", {}).get("size") != expected_records
+            ):
+                raise ProtocolError(
+                    "snapshot schema must contain {} Time records: {}".format(
+                        expected_records, path
+                    )
+                )
             time = np.asarray(infile.variables["Time"][:])
-            if time.shape != (1,) or not np.isfinite(time).all():
-                raise ProtocolError("snapshot Time must be one finite record: {}".format(path))
+            if time.shape != (expected_records,) or not np.isfinite(time).all():
+                raise ProtocolError("snapshot Time records must be finite: {}".format(path))
 
             static = {}
             timed = {}
             for name, variable in infile.variables.items():
                 data = np.asarray(variable[:])
                 if "Time" in variable.dimensions:
-                    if variable.dimensions[0] != "Time" or data.shape[0] != 1:
+                    if variable.dimensions[0] != "Time" or data.shape[0] != expected_records:
                         raise ProtocolError(
                             "snapshot schema requires Time as the leading dimension: {}".format(name)
                         )
                     timed[name] = data
                 else:
                     static[name] = data
+            if "maskT" not in static:
+                raise ProtocolError("snapshot schema requires static maskT")
 
             current = {
                 "dimensions": dimensions,
@@ -76,42 +142,41 @@ def _read_segment(path, reference=None):
             }
     except OSError as error:
         raise ProtocolError("could not read snapshot {}: {}".format(path, error)) from error
-
     if reference is not None:
-        reference_dimensions = dict(reference["dimensions"])
-        current_dimensions = dict(current["dimensions"])
-        reference_dimensions["Time"] = 1
-        current_dimensions["Time"] = 1
-        if current_dimensions != reference_dimensions:
-            raise ProtocolError("snapshot schema dimensions do not match")
-        if current["schemas"].keys() != reference["schemas"].keys():
-            raise ProtocolError("snapshot schema variables do not match")
-        for name in reference["schemas"]:
-            left_dims, left_dtype, left_attrs = reference["schemas"][name]
-            right_dims, right_dtype, right_attrs = current["schemas"][name]
-            if (left_dims, left_dtype) != (right_dims, right_dtype) or not _attributes_equal(
-                left_attrs, right_attrs
-            ):
-                raise ProtocolError("snapshot schema mismatch for {}".format(name))
-        if not _attributes_equal(
-            reference["global_attributes"], current["global_attributes"]
-        ):
-            raise ProtocolError("snapshot schema global attributes do not match")
-        for name, expected in reference["static"].items():
-            if not _values_equal(current["static"][name], expected):
-                label = "mask mismatch" if name == "maskT" else "static mismatch"
-                raise ProtocolError("snapshot {} for {}".format(label, name))
+        _compare_snapshot_schema(reference, current)
     return current
 
 
 def _records_equal(left, right):
-    return all(_values_equal(left[name], right[name]) for name in left)
+    return left.keys() == right.keys() and all(
+        _values_equal(left[name], right[name]) for name in left
+    )
 
 
 def _copy_attributes(target, attributes):
     for name, value in attributes.items():
         if name != "_FillValue":
             target.attrs[name] = value.item() if value.ndim == 0 else value
+
+
+def _create_variable(outfile, name, dims, dtype, attributes, storage):
+    kwargs = {}
+    if storage["chunks"] is not None:
+        kwargs["chunks"] = storage["chunks"]
+    if storage["compression"] is not None:
+        kwargs["compression"] = storage["compression"]
+        kwargs["compression_opts"] = storage["compression_opts"]
+    if storage["shuffle"]:
+        kwargs["shuffle"] = True
+    if storage["fletcher32"]:
+        kwargs["fletcher32"] = True
+    if "_FillValue" in attributes:
+        kwargs["fillvalue"] = storage["fillvalue"].item()
+    variable = outfile.create_variable(name, dims, np.dtype(dtype), **kwargs)
+    _copy_attributes(variable, attributes)
+    if "_FillValue" in attributes:
+        variable.attrs["_FillValue"] = attributes["_FillValue"].item()
+    return variable
 
 
 def merge_snapshots(paths, output_path, expected_records=60, interval_days=360.0):
@@ -129,7 +194,7 @@ def merge_snapshots(paths, output_path, expected_records=60, interval_days=360.0
     reference = None
     records = {}
     for path in paths:
-        current = _read_segment(path, reference=reference)
+        current = _read_snapshot(path, reference=reference)
         if reference is None:
             reference = current
         time = float(current["timed"]["Time"][0])
@@ -166,22 +231,29 @@ def merge_snapshots(paths, output_path, expected_records=60, interval_days=360.0
             temporary = Path(outfile.name)
         temporary.unlink()
         with h5netcdf.File(temporary, "w") as outfile:
-            for name, size in reference["dimensions"].items():
-                outfile.dimensions[name] = expected_records if name == "Time" else size
+            for name, definition in reference["dimensions"].items():
+                if definition["unlimited"]:
+                    outfile.dimensions[name] = None
+                else:
+                    size = expected_records if name == "Time" else definition["size"]
+                    outfile.dimensions[name] = size
+            for name, definition in reference["dimensions"].items():
+                if definition["unlimited"]:
+                    size = expected_records if name == "Time" else definition["size"]
+                    outfile.resize_dimension(name, size)
             _copy_attributes(outfile, reference["global_attributes"])
-            for name, (dims, dtype, attributes) in reference["schemas"].items():
-                fill_value = attributes.get("_FillValue")
-                if fill_value is not None:
-                    fill_value = fill_value.item()
-                variable = outfile.create_variable(name, dims, np.dtype(dtype), fillvalue=fill_value)
-                _copy_attributes(variable, attributes)
+            for name, (dims, dtype, attributes, storage) in reference["schemas"].items():
+                variable = _create_variable(outfile, name, dims, dtype, attributes, storage)
                 if "Time" in dims:
                     variable[:] = np.concatenate(
                         [records[time][name] for time in ordered_times], axis=0
                     )
                 else:
                     variable[:] = reference["static"][name]
+        fsync_file(temporary)
         os.replace(str(temporary), str(output_path))
+        fsync_file(output_path)
+        _fsync_directory(output_path.parent)
     finally:
         if temporary is not None and temporary.exists():
             temporary.unlink()
@@ -199,6 +271,29 @@ def _allocate_merged_path(root):
         attempt += 1
 
 
+def _validate_merged_snapshot(path, committed_snapshots, config):
+    reference = _read_snapshot(committed_snapshots[0])
+    merged = _read_snapshot(path, expected_records=config.total_segments)
+    reference_dimensions = dict(reference["dimensions"])
+    merged_dimensions = dict(merged["dimensions"])
+    reference_dimensions["Time"] = dict(reference_dimensions["Time"])
+    reference_dimensions["Time"]["size"] = config.total_segments
+    merged_for_comparison = dict(merged)
+    merged_for_comparison["dimensions"] = merged_dimensions
+    reference_for_comparison = dict(reference)
+    reference_for_comparison["dimensions"] = reference_dimensions
+    _compare_snapshot_schema(reference_for_comparison, merged_for_comparison)
+    expected_times = (
+        np.arange(1, config.total_segments + 1, dtype=float)
+        * config.segment_seconds
+        / 86400.0
+    )
+    if not np.allclose(
+        merged["timed"]["Time"], expected_times, rtol=0.0, atol=1e-6
+    ):
+        raise ProtocolError("committed merged snapshot has invalid Time records")
+
+
 def finalize_run(root, validator):
     root = Path(root)
     if not root.is_absolute():
@@ -207,22 +302,29 @@ def finalize_run(root, validator):
     config = validate_manifest(root, manifest)
     if manifest["status"] != "complete":
         raise ProtocolError("cannot merge an incomplete run")
+    committed = [entry["snapshot"] for entry in manifest["committed_segments"]]
     if "merged_snapshot" in manifest:
-        merged = Path(manifest["merged_snapshot"])
-        if not merged.is_file():
-            raise ProtocolError("committed merged snapshot does not exist")
+        merged = require_artifact(manifest["merged_snapshot"], "merged snapshot", root)
+        expected_hash = manifest.get("merged_sha256")
+        if not isinstance(expected_hash, str) or sha256_file(merged) != expected_hash:
+            raise ProtocolError("merged snapshot SHA-256 does not match committed evidence")
+        _validate_merged_snapshot(merged, committed, config)
         validator(merged)
         return merged
 
     merged = _allocate_merged_path(root)
     merge_snapshots(
-        [entry["snapshot"] for entry in manifest["committed_segments"]],
+        committed,
         merged,
         expected_records=config.total_segments,
         interval_days=config.segment_seconds / 86400.0,
     )
+    _validate_merged_snapshot(merged, committed, config)
     metrics = validator(merged)
+    fsync_file(merged)
+    _fsync_directory(merged.parent)
     manifest["merged_snapshot"] = str(merged)
+    manifest["merged_sha256"] = sha256_file(merged)
     manifest["validation"] = metrics
     write_manifest_atomic(root, manifest)
     return merged

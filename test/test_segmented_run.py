@@ -22,11 +22,29 @@ from veros_bgc.snapshot_merge import finalize_run, merge_snapshots
 
 DAY = 86400.0
 FILL_VALUE = -1e33
+TEST_RESTART_SCHEMA = {
+    "snapshot": {
+        "attributes": {
+            "itt": {"dtype": "<i8", "shape": []},
+            "time": {"dtype": "<f8", "shape": []},
+            "tau": {"dtype": "<i8", "shape": []},
+            "taum1": {"dtype": "<i8", "shape": []},
+            "taup1": {"dtype": "<i8", "shape": []},
+        },
+        "datasets": {},
+    }
+}
+
+
+def _pointers(steps):
+    return ((0, 1, 2), (1, 2, 0), (2, 0, 1))[steps % 3]
 
 
 def write_attempt_artifacts(spec, checkpoint_time=None, snapshot_time=None):
     checkpoint_time = spec.end_time if checkpoint_time is None else checkpoint_time
     snapshot_time = spec.end_time if snapshot_time is None else snapshot_time
+    steps = int(spec.end_time / DAY)
+    taum1, tau, taup1 = _pointers(steps)
     with h5netcdf.File(spec.paths.snapshot, "w") as outfile:
         outfile.dimensions["Time"] = 1
         time = outfile.create_variable("Time", ("Time",), float)
@@ -34,8 +52,20 @@ def write_attempt_artifacts(spec, checkpoint_time=None, snapshot_time=None):
         time[:] = [snapshot_time / DAY]
     with h5py.File(spec.paths.checkpoint, "w") as outfile:
         snapshot = outfile.create_group("snapshot")
-        snapshot.attrs["time"] = checkpoint_time
+        snapshot.attrs.update(
+            itt=steps,
+            time=checkpoint_time,
+            tau=tau,
+            taum1=taum1,
+            taup1=taup1,
+        )
     spec.paths.log.write_text("completed\n", encoding="utf-8")
+    for path in spec.paths.diagnostics.values():
+        path.write_bytes(b"diagnostic")
+    return {
+        "restart_schema": TEST_RESTART_SCHEMA,
+        "runtime_config": {"dt_tracer": DAY},
+    }
 
 
 def write_completed_snapshot(path, time_days, value, mask=(1, 0), pco2_dims=None):
@@ -68,10 +98,11 @@ class RecordingExecutor:
 
     def __call__(self, spec):
         self.calls.append(spec)
-        write_attempt_artifacts(spec)
+        result = write_attempt_artifacts(spec)
         if self.fail_once_at == spec.index:
             self.fail_once_at = None
             raise RuntimeError("simulated interruption")
+        return result
 
 
 def test_attempt_paths_are_absolute_fresh_and_confined_to_output_root(tmp_path):
@@ -85,13 +116,8 @@ def test_attempt_paths_are_absolute_fresh_and_confined_to_output_root(tmp_path):
     assert first.directory.name == "segment-000-attempt-001"
     assert second.directory.name == "segment-000-attempt-002"
     for attempt in (first, second):
-        paths = [
-            attempt.directory,
-            attempt.snapshot,
-            attempt.checkpoint,
-            attempt.log,
-            *attempt.diagnostics.values(),
-        ]
+        paths = [attempt.directory, attempt.snapshot, attempt.checkpoint, attempt.log]
+        paths.extend(attempt.diagnostics.values())
         assert all(path.is_absolute() for path in paths)
         assert all(path.is_relative_to(root) for path in paths)
         assert len(paths) == len(set(paths))
@@ -174,7 +200,7 @@ def test_attempt_is_not_committed_when_checkpoint_time_disagrees(tmp_path):
     config = RunConfig(root=root, total_segments=1, segment_seconds=DAY, snapshot_seconds=DAY)
 
     def wrong_checkpoint(spec):
-        write_attempt_artifacts(spec, checkpoint_time=spec.start_time)
+        return write_attempt_artifacts(spec, checkpoint_time=spec.start_time)
 
     with pytest.raises(ProtocolError, match="checkpoint time"):
         run_new(config, wrong_checkpoint)
@@ -245,8 +271,9 @@ def test_finalize_merges_committed_snapshots_then_hands_off_to_validator(tmp_pat
     config = RunConfig(root=root, total_segments=2, segment_seconds=DAY, snapshot_seconds=DAY)
 
     def executor(spec):
-        write_attempt_artifacts(spec)
+        result = write_attempt_artifacts(spec)
         write_completed_snapshot(spec.paths.snapshot, spec.end_time / DAY, spec.index + 1)
+        return result
 
     run_new(config, executor)
     calls = []
