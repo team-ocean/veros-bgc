@@ -185,8 +185,18 @@ def test_interrupted_run_resumes_from_last_commit_without_rerunning_it(tmp_path)
     final = resume_run(root, resumed)
     assert [call.index for call in resumed.calls] == [1, 2]
     assert resumed.calls[0].paths.directory.name == "segment-001-attempt-002"
-    assert resumed.calls[0].input_checkpoint == interrupted.calls[0].paths.checkpoint
-    assert resumed.calls[1].input_checkpoint == resumed.calls[0].paths.checkpoint
+    assert resumed.calls[0].input_checkpoint != interrupted.calls[0].paths.checkpoint
+    assert resumed.calls[0].input_checkpoint.name == "verified-input.restart.h5"
+    assert (
+        resumed.calls[0].input_checkpoint.read_bytes()
+        == interrupted.calls[0].paths.checkpoint.read_bytes()
+    )
+    assert resumed.calls[1].input_checkpoint != resumed.calls[0].paths.checkpoint
+    assert resumed.calls[1].input_checkpoint.name == "verified-input.restart.h5"
+    assert (
+        resumed.calls[1].input_checkpoint.read_bytes()
+        == resumed.calls[0].paths.checkpoint.read_bytes()
+    )
     assert final["status"] == "complete"
     assert [entry["end_time"] for entry in final["committed_segments"]] == [DAY, 2 * DAY, 3 * DAY]
     assert all(
@@ -285,7 +295,8 @@ def test_finalize_merges_committed_snapshots_then_hands_off_to_validator(tmp_pat
         return {"status": "PASS", "snapshot_count": 2}
 
     merged = finalize_run(root, validator)
-    assert calls == [merged]
+    assert len(calls) == 1
+    assert str(calls[0]).startswith("/proc/self/fd/")
     assert merged.is_file()
     assert merged.name == "mobi-parity.snapshot-attempt-001.nc"
     manifest = load_manifest(root)

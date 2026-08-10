@@ -84,13 +84,7 @@ class VerosSegmentExecutor:
         try:
             setup.setup()
             schema = restart_schema_from_state(setup.state)
-            runtime_config = {
-                "dt_tracer": float(setup.state.dt_tracer),
-                "default_float_type": setup.state.default_float_type,
-                "enable_hdf5_gzip_compression": bool(
-                    setup.state.enable_hdf5_gzip_compression
-                ),
-            }
+            runtime_config = {"dt_tracer": float(setup.state.dt_tracer)}
             setup.run(show_progress_bar=False)
         finally:
             logger.remove(sink)

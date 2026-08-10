@@ -10,9 +10,17 @@ import tempfile
 import h5netcdf
 import h5py
 import numpy as np
+import scipy
 
 import veros
 from veros import runtime_settings
+from veros.core.streamfunction.streamfunction_init import _get_solver_class
+
+from veros_bgc.artifact_trust import (
+    ArtifactTrustError,
+    run_lock as _artifact_run_lock,
+    stable_artifact,
+)
 
 
 DAY = 86400.0
@@ -20,10 +28,10 @@ MANIFEST_NAME = "progress.json"
 MANIFEST_VERSION = 2
 PLUGIN_ROOT = Path(__file__).resolve().parents[1]
 VEROS_ROOT = Path(veros.__file__).resolve().parents[1]
+EXPECTED_VEROS_COMMIT = "bcbead95d56341f3ee9f30311c05a546674095e7"
 
 
-class ProtocolError(RuntimeError):
-    pass
+ProtocolError = ArtifactTrustError
 
 
 def _canonical_root(root, must_exist=False):
@@ -70,6 +78,7 @@ class AttemptPaths:
     directory: Path
     snapshot: Path
     checkpoint: Path
+    input_checkpoint_copy: Path
     log: Path
     diagnostics: dict
 
@@ -99,13 +108,38 @@ def _git_commit(root):
     return result.stdout.strip()
 
 
+def _git_tracked_clean(root):
+    try:
+        result = subprocess.run(
+            ["git", "status", "--porcelain", "--untracked-files=no"],
+            cwd=str(root),
+            check=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+        )
+    except (OSError, subprocess.CalledProcessError) as error:
+        raise ProtocolError("could not inspect tracked Git state for {}: {}".format(root, error)) from error
+    return not result.stdout.strip()
+
+
 def _content_fingerprint(root):
     digest = hashlib.sha256()
+    science_root = root / "veros_bgc"
     paths = sorted(
         path
-        for path in (root / "veros_bgc").rglob("*")
+        for path in science_root.rglob("*")
         if path.is_file() and path.suffix in (".py", ".yml", ".yaml")
     )
+    paths.extend(
+        path
+        for path in (
+            root / "scripts" / "validate_60_year_run.py",
+            root / "scripts" / "run_segmented_60_year.py",
+        )
+        if path.is_file()
+    )
+    paths = sorted(set(paths))
     if not paths:
         raise ProtocolError("no plugin science files found for identity")
     for path in paths:
@@ -118,9 +152,23 @@ def _content_fingerprint(root):
     return digest.hexdigest()
 
 
+def _resolved_solver_identity():
+    solver_class = _get_solver_class()
+    return "{}.{}".format(solver_class.__module__, solver_class.__qualname__)
+
+
 def scientific_identity():
+    veros_commit = _git_commit(VEROS_ROOT)
+    if veros_commit != EXPECTED_VEROS_COMMIT:
+        raise ProtocolError(
+            "production requires pinned Veros commit {}; found {}".format(
+                EXPECTED_VEROS_COMMIT, veros_commit
+            )
+        )
+    if not _git_tracked_clean(VEROS_ROOT):
+        raise ProtocolError("production requires a clean tracked Veros worktree")
     return {
-        "veros_git_commit": _git_commit(VEROS_ROOT),
+        "veros_git_commit": veros_commit,
         "plugin_git_commit": _git_commit(PLUGIN_ROOT),
         "plugin_content_sha256": _content_fingerprint(PLUGIN_ROOT),
         "runtime": {
@@ -131,6 +179,8 @@ def scientific_identity():
             "numpy": np.__version__,
             "h5py": h5py.__version__,
             "h5netcdf": h5netcdf.__version__,
+            "scipy": scipy.__version__,
+            "resolved_linear_solver": _resolved_solver_identity(),
         },
         "configured_tracer_step_seconds": DAY,
     }
@@ -227,6 +277,7 @@ def allocate_attempt(root, segment_index):
         directory=directory,
         snapshot=directory / "completed.snapshot.nc",
         checkpoint=directory / "completed.restart.h5",
+        input_checkpoint_copy=directory / "verified-input.restart.h5",
         log=directory / "run.log",
         diagnostics={
             name: directory / "{}.nc".format(name)
@@ -307,6 +358,11 @@ def _check_sha256(path, expected, label):
     actual = sha256_file(path)
     if actual != expected:
         raise ProtocolError("{} SHA-256 does not match committed evidence".format(label))
+
+
+def run_lock(root):
+    root = _canonical_root(root)
+    return _artifact_run_lock(root)
 
 
 def _read_snapshot_time(path):
@@ -484,10 +540,20 @@ def validate_manifest(root, manifest, verify_identity=True):
             if not isinstance(hashes, dict) or set(hashes) != set(artifacts):
                 raise ProtocolError("invalid committed artifact SHA-256 mapping")
             for name, path in artifacts.items():
-                _check_sha256(path, hashes[name], name)
-            _validate_artifact_times(
-                artifacts["snapshot"], artifacts["checkpoint"], schema, expected_end
-            )
+                expected_hash = hashes[name]
+                if not isinstance(expected_hash, str) or len(expected_hash) != 64:
+                    raise ProtocolError("invalid committed SHA-256 for {}".format(name))
+                with stable_artifact(path, root, name, expected_hash=expected_hash) as opened:
+                    if name == "snapshot":
+                        snapshot_time = _read_snapshot_time(opened.proc_path)
+                        if not np.isclose(
+                            snapshot_time, expected_end, rtol=0.0, atol=1e-6
+                        ):
+                            raise ProtocolError(
+                                "snapshot time does not match expected completed time"
+                            )
+                    elif name == "checkpoint":
+                        _validate_checkpoint(opened.proc_path, schema, expected_end)
 
         expected_status = "complete" if len(entries) == config.total_segments else "running"
         if manifest["status"] != expected_status:
@@ -520,8 +586,12 @@ def _execution_contract(result):
         raise ProtocolError("segment executor returned no configured restart contract")
     schema = _validate_restart_schema(result.get("restart_schema"))
     runtime_config = result.get("runtime_config")
-    if not isinstance(runtime_config, dict) or runtime_config.get("dt_tracer") != DAY:
-        raise ProtocolError("configured tracer timestep differs from protocol identity")
+    if (
+        not isinstance(runtime_config, dict)
+        or set(runtime_config) != {"dt_tracer"}
+        or runtime_config["dt_tracer"] != DAY
+    ):
+        raise ProtocolError("executor runtime configuration differs from protocol identity")
     return schema
 
 
@@ -537,21 +607,55 @@ def _sync_attempt(spec, root):
     for path in artifacts.values():
         fsync_file(path)
     _fsync_directory(directory)
+    _fsync_directory(directory.parent)
     return artifacts, {name: sha256_file(path) for name, path in artifacts.items()}
+
+
+def _copy_verified_checkpoint(source, destination, schema, expected_time):
+    flags = os.O_WRONLY | os.O_CREAT | os.O_EXCL | getattr(os, "O_NOFOLLOW", 0)
+    try:
+        output = os.open(str(destination), flags, 0o600)
+    except OSError as error:
+        raise ProtocolError("could not create private checkpoint copy: {}".format(error)) from error
+    try:
+        offset = 0
+        while True:
+            chunk = os.pread(source.descriptor, 1024 * 1024, offset)
+            if not chunk:
+                break
+            written = 0
+            while written < len(chunk):
+                written += os.write(output, chunk[written:])
+            offset += len(chunk)
+        os.fsync(output)
+    finally:
+        os.close(output)
+    _fsync_directory(destination.parent)
+    source.verify()
+    with stable_artifact(
+        destination, source.root, "private checkpoint copy", expected_hash=source.sha256
+    ) as private:
+        _validate_checkpoint(private.proc_path, schema, expected_time)
 
 
 def run_new(config, executor, max_segments=None):
     root = config.root
-    if manifest_path(root).exists():
-        raise ProtocolError("progress manifest already exists; use resume")
-    if root.exists() and any(root.iterdir()):
-        raise ProtocolError("new run output root must be empty")
-    write_manifest_atomic(root, new_manifest(config))
-    return resume_run(root, executor, max_segments=max_segments)
+    with run_lock(root):
+        if manifest_path(root).exists():
+            raise ProtocolError("progress manifest already exists; use resume")
+        if any(path.name != ".protocol.lock" for path in root.iterdir()):
+            raise ProtocolError("new run output root must be empty")
+        write_manifest_atomic(root, new_manifest(config))
+        return _resume_unlocked(root, executor, max_segments=max_segments)
 
 
 def resume_run(root, executor, max_segments=None):
     root = _canonical_root(root, must_exist=True)
+    with run_lock(root):
+        return _resume_unlocked(root, executor, max_segments=max_segments)
+
+
+def _resume_unlocked(root, executor, max_segments=None):
     if max_segments is not None and max_segments < 0:
         raise ValueError("max_segments must be nonnegative")
 
@@ -569,16 +673,40 @@ def resume_run(root, executor, max_segments=None):
         start_time = index * config.segment_seconds
         end_time = start_time + config.segment_seconds
         previous = manifest["committed_segments"][-1] if index else None
-        input_checkpoint = Path(previous["checkpoint"]) if previous else None
-        spec = SegmentSpec(
-            index=index,
-            start_time=start_time,
-            end_time=end_time,
-            input_checkpoint=input_checkpoint,
-            paths=allocate_attempt(root, index),
-            config=config,
-        )
-        schema = _execution_contract(executor(spec))
+        paths = allocate_attempt(root, index)
+
+        if previous is None:
+            spec = SegmentSpec(
+                index=index,
+                start_time=start_time,
+                end_time=end_time,
+                input_checkpoint=None,
+                paths=paths,
+                config=config,
+            )
+            schema = _execution_contract(executor(spec))
+        else:
+            source_path = Path(previous["checkpoint"])
+            source_hash = previous["sha256"]["checkpoint"]
+            committed_schema = _validate_restart_schema(manifest.get("restart_schema"))
+            with stable_artifact(
+                source_path, root, "input checkpoint", expected_hash=source_hash
+            ) as source:
+                _validate_checkpoint(source.proc_path, committed_schema, start_time)
+                _copy_verified_checkpoint(
+                    source, paths.input_checkpoint_copy, committed_schema, start_time
+                )
+                spec = SegmentSpec(
+                    index=index,
+                    start_time=start_time,
+                    end_time=end_time,
+                    input_checkpoint=paths.input_checkpoint_copy,
+                    paths=paths,
+                    config=config,
+                )
+                schema = _execution_contract(executor(spec))
+                source.verify()
+
         if "restart_schema" in manifest and schema != manifest["restart_schema"]:
             raise ProtocolError("configured restart schema changed between segments")
         manifest.setdefault("restart_schema", schema)

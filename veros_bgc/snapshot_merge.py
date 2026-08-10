@@ -1,3 +1,4 @@
+from contextlib import ExitStack
 import os
 from pathlib import Path
 import tempfile
@@ -11,7 +12,9 @@ from veros_bgc.run_protocol import (
     fsync_file,
     load_manifest,
     require_artifact,
+    run_lock,
     sha256_file,
+    stable_artifact,
     validate_manifest,
     write_manifest_atomic,
 )
@@ -298,33 +301,62 @@ def finalize_run(root, validator):
     root = Path(root)
     if not root.is_absolute():
         raise ValueError("output root must be an explicit absolute path")
-    manifest = load_manifest(root)
-    config = validate_manifest(root, manifest)
-    if manifest["status"] != "complete":
-        raise ProtocolError("cannot merge an incomplete run")
-    committed = [entry["snapshot"] for entry in manifest["committed_segments"]]
-    if "merged_snapshot" in manifest:
-        merged = require_artifact(manifest["merged_snapshot"], "merged snapshot", root)
-        expected_hash = manifest.get("merged_sha256")
-        if not isinstance(expected_hash, str) or sha256_file(merged) != expected_hash:
-            raise ProtocolError("merged snapshot SHA-256 does not match committed evidence")
-        _validate_merged_snapshot(merged, committed, config)
-        validator(merged)
-        return merged
+    with run_lock(root):
+        manifest = load_manifest(root)
+        config = validate_manifest(root, manifest)
+        if manifest["status"] != "complete":
+            raise ProtocolError("cannot merge an incomplete run")
 
-    merged = _allocate_merged_path(root)
-    merge_snapshots(
-        committed,
-        merged,
-        expected_records=config.total_segments,
-        interval_days=config.segment_seconds / 86400.0,
-    )
-    _validate_merged_snapshot(merged, committed, config)
-    metrics = validator(merged)
-    fsync_file(merged)
-    _fsync_directory(merged.parent)
-    manifest["merged_snapshot"] = str(merged)
-    manifest["merged_sha256"] = sha256_file(merged)
-    manifest["validation"] = metrics
-    write_manifest_atomic(root, manifest)
-    return merged
+        with ExitStack() as stack:
+            committed = []
+            for entry in manifest["committed_segments"]:
+                opened = stack.enter_context(
+                    stable_artifact(
+                        entry["snapshot"],
+                        root,
+                        "committed snapshot",
+                        expected_hash=entry["sha256"]["snapshot"],
+                    )
+                )
+                committed.append(opened.proc_path)
+
+            if "merged_snapshot" in manifest:
+                merged = require_artifact(
+                    manifest["merged_snapshot"], "merged snapshot", root
+                )
+                expected_hash = manifest.get("merged_sha256")
+                if not isinstance(expected_hash, str) or len(expected_hash) != 64:
+                    raise ProtocolError("invalid committed merged snapshot SHA-256")
+                opened = stack.enter_context(
+                    stable_artifact(
+                        merged,
+                        root,
+                        "merged snapshot",
+                        expected_hash=expected_hash,
+                    )
+                )
+                _validate_merged_snapshot(opened.proc_path, committed, config)
+                validator(opened.proc_path)
+                opened.verify()
+                return merged
+
+            merged = _allocate_merged_path(root)
+            merge_snapshots(
+                committed,
+                merged,
+                expected_records=config.total_segments,
+                interval_days=config.segment_seconds / 86400.0,
+            )
+            opened = stack.enter_context(
+                stable_artifact(merged, root, "merged snapshot")
+            )
+            _validate_merged_snapshot(opened.proc_path, committed, config)
+            metrics = validator(opened.proc_path)
+            os.fsync(opened.descriptor)
+            _fsync_directory(merged.parent)
+            manifest["merged_snapshot"] = str(merged)
+            manifest["merged_sha256"] = opened.sha256
+            manifest["validation"] = metrics
+            write_manifest_atomic(root, manifest)
+            opened.verify()
+            return merged
