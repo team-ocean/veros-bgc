@@ -64,6 +64,9 @@ def write_snapshot(
             time[:] = (np.arange(1, record_count + 1) * 360.0).reshape(
                 (record_count,) + (1,) * (len(time_dimensions) - 1)
             )
+        mask = outfile.create_variable("maskT", ("zt", "yt", "xt"), np.int8)
+        mask[:] = 0
+        mask[0, 0, 0] = 1
         for name in ("dic", "alkalinity", "pCO2", "hSWS", "cflux"):
             if name in missing_variables:
                 continue

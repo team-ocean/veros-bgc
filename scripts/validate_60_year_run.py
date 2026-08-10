@@ -10,6 +10,7 @@ import numpy as np
 REQUIRED_VARIABLES = ("dic", "alkalinity", "pCO2", "hSWS", "cflux")
 EXPECTED_DIMENSIONS = {
     "Time": ("Time",),
+    "maskT": ("zt", "yt", "xt"),
     "dic": ("Time", "zt", "yt", "xt"),
     "alkalinity": ("Time", "zt", "yt", "xt"),
     "pCO2": ("Time", "yt", "xt"),
@@ -35,6 +36,26 @@ def wet_mask(variable, index):
     if fill_value is not None:
         mask &= data != fill_value
     return data, mask
+
+
+def validate_maskt(variable):
+    expected_dimensions = EXPECTED_DIMENSIONS["maskT"]
+    if tuple(variable.dimensions) != expected_dimensions:
+        raise ValidationError(
+            "maskT has dimensions {}, expected {}".format(
+                tuple(variable.dimensions), expected_dimensions
+            )
+        )
+    validate_numeric_dtype("maskT", variable)
+    data = np.asarray(variable[:])
+    if not np.isfinite(data).all():
+        raise ValidationError("maskT contains non-finite values")
+    if not np.all((data == 0) | (data == 1)):
+        raise ValidationError("maskT must contain only zero and one")
+    mask = data.astype(bool)
+    if not mask.any():
+        raise ValidationError("maskT contains no wet values")
+    return mask
 
 
 def validate_field(name, variable, snapshot_count):
@@ -81,7 +102,7 @@ def validate_snapshot(path):
     path = Path(path)
     try:
         with h5netcdf.File(path, "r") as infile:
-            required = ("Time",) + REQUIRED_VARIABLES
+            required = ("Time", "maskT") + REQUIRED_VARIABLES
             missing = [name for name in required if name not in infile.variables]
             if missing:
                 raise ValidationError("missing required variables: {}".format(", ".join(missing)))
@@ -110,6 +131,8 @@ def validate_snapshot(path):
             if not np.allclose(snapshot_times, expected_times, rtol=0.0, atol=1e-6):
                 raise ValidationError("snapshot times are not annual 360-day records")
 
+            authoritative_mask = validate_maskt(infile.variables["maskT"])
+            authoritative_surface_mask = authoritative_mask[-1]
             masks = {}
             record_values = {}
             metrics = {"snapshot_count": snapshot_count}
@@ -117,6 +140,21 @@ def validate_snapshot(path):
                 masks[name], record_values[name] = validate_field(
                     name, infile.variables[name], snapshot_count
                 )
+                expected_mask = (
+                    authoritative_mask
+                    if name in ("dic", "alkalinity")
+                    else authoritative_surface_mask
+                )
+                if not np.array_equal(masks[name], expected_mask):
+                    if name in ("dic", "alkalinity"):
+                        message = (
+                            "dic and alkalinity wet masks do not match authoritative maskT"
+                        )
+                    else:
+                        message = (
+                            "pCO2, hSWS, and cflux wet masks do not match authoritative maskT"
+                        )
+                    raise ValidationError(message)
                 metrics[name + "_min"] = float(
                     min(values.min() for values in record_values[name])
                 )

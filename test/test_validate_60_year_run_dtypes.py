@@ -40,6 +40,10 @@ def write_nonnumeric_snapshot(path, target):
         else:
             time[:] = np.arange(1, 61) * 360.0
 
+        mask = outfile.create_variable("maskT", ("zt", "yt", "xt"), np.int8)
+        mask[:] = 0
+        mask[0, 0, 0] = 1
+
         for name, dimensions in FIELD_DIMENSIONS.items():
             if name == target:
                 variable = outfile.create_variable(name, dimensions, STRING_DTYPE)
