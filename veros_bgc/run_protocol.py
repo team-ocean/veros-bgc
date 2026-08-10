@@ -611,7 +611,7 @@ def _sync_attempt(spec, root):
     return artifacts, {name: sha256_file(path) for name, path in artifacts.items()}
 
 
-def _copy_verified_checkpoint(source, destination, schema, expected_time):
+def _copy_verified_checkpoint(source, destination):
     flags = os.O_WRONLY | os.O_CREAT | os.O_EXCL | getattr(os, "O_NOFOLLOW", 0)
     try:
         output = os.open(str(destination), flags, 0o600)
@@ -632,10 +632,6 @@ def _copy_verified_checkpoint(source, destination, schema, expected_time):
         os.close(output)
     _fsync_directory(destination.parent)
     source.verify()
-    with stable_artifact(
-        destination, source.root, "private checkpoint copy", expected_hash=source.sha256
-    ) as private:
-        _validate_checkpoint(private.proc_path, schema, expected_time)
 
 
 def run_new(config, executor, max_segments=None):
@@ -693,19 +689,31 @@ def _resume_unlocked(root, executor, max_segments=None):
                 source_path, root, "input checkpoint", expected_hash=source_hash
             ) as source:
                 _validate_checkpoint(source.proc_path, committed_schema, start_time)
-                _copy_verified_checkpoint(
-                    source, paths.input_checkpoint_copy, committed_schema, start_time
-                )
-                spec = SegmentSpec(
-                    index=index,
-                    start_time=start_time,
-                    end_time=end_time,
-                    input_checkpoint=paths.input_checkpoint_copy,
-                    paths=paths,
-                    config=config,
-                )
-                schema = _execution_contract(executor(spec))
-                source.verify()
+                _copy_verified_checkpoint(source, paths.input_checkpoint_copy)
+                with stable_artifact(
+                    paths.input_checkpoint_copy,
+                    root,
+                    "private checkpoint copy",
+                    expected_hash=source.sha256,
+                ) as private:
+                    _validate_checkpoint(
+                        private.proc_path, committed_schema, start_time
+                    )
+                    spec = SegmentSpec(
+                        index=index,
+                        start_time=start_time,
+                        end_time=end_time,
+                        input_checkpoint=private.proc_path,
+                        paths=paths,
+                        config=config,
+                    )
+                    try:
+                        schema = _execution_contract(executor(spec))
+                    finally:
+                        try:
+                            private.verify()
+                        finally:
+                            source.verify()
 
         if "restart_schema" in manifest and schema != manifest["restart_schema"]:
             raise ProtocolError("configured restart schema changed between segments")

@@ -244,10 +244,51 @@ def test_executor_consumes_private_checkpoint_and_source_replacement_aborts_comm
     with pytest.raises(ProtocolError, match="changed during|stable|symlink"):
         run_protocol.resume_run(root, executor)
     assert observed["private_path"] != source
-    assert observed["private_path"].name == "verified-input.restart.h5"
+    assert str(observed["private_path"]).startswith("/proc/self/fd/")
     assert observed["private_hash"] == expected_hash
     assert observed["mode"] == 0o600
     assert run_protocol.load_manifest(root)["committed_segments"] == manifest["committed_segments"]
+
+
+def test_private_checkpoint_replacement_during_executor_setup_uses_retained_inode(
+    tmp_path,
+):
+    root = _running_manifest(tmp_path)
+    before = run_protocol.load_manifest(root)
+    expected_hash = before["committed_segments"][0]["sha256"]["checkpoint"]
+    observed = {}
+
+    def replace_private_before_restart_read(spec):
+        private_path = spec.paths.input_checkpoint_copy
+        replacement = private_path.with_name("replacement-private.restart.h5")
+        replacement.write_bytes(private_path.read_bytes())
+        with h5py.File(replacement, "r+") as outfile:
+            outfile["snapshot"]["state"][0] = 999.0
+        os.replace(replacement, private_path)
+        observed["input_path"] = str(spec.input_checkpoint)
+        observed["retained_hash"] = hashlib.sha256(
+            Path(spec.input_checkpoint).read_bytes()
+        ).hexdigest()
+        with h5py.File(spec.input_checkpoint, "r") as infile:
+            observed["state"] = infile["snapshot"]["state"][:].tolist()
+
+    executor = Executor(before_write=replace_private_before_restart_read)
+    caught = None
+    try:
+        run_protocol.resume_run(root, executor)
+    except ProtocolError as error:
+        caught = error
+
+    assert observed["retained_hash"] == expected_hash
+    if "state" in observed:
+        assert observed["state"] == [1.0, 2.0]
+    assert observed["input_path"].startswith("/proc/self/fd/")
+    assert caught is not None
+    assert "changed during stable use" in str(caught)
+    assert (
+        run_protocol.load_manifest(root)["committed_segments"]
+        == before["committed_segments"]
+    )
 
 
 def test_concurrent_protocol_lock_contention_fails_before_executor(tmp_path):

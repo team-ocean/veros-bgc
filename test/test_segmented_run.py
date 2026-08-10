@@ -185,16 +185,14 @@ def test_interrupted_run_resumes_from_last_commit_without_rerunning_it(tmp_path)
     final = resume_run(root, resumed)
     assert [call.index for call in resumed.calls] == [1, 2]
     assert resumed.calls[0].paths.directory.name == "segment-001-attempt-002"
-    assert resumed.calls[0].input_checkpoint != interrupted.calls[0].paths.checkpoint
-    assert resumed.calls[0].input_checkpoint.name == "verified-input.restart.h5"
+    assert str(resumed.calls[0].input_checkpoint).startswith("/proc/self/fd/")
     assert (
-        resumed.calls[0].input_checkpoint.read_bytes()
+        resumed.calls[0].paths.input_checkpoint_copy.read_bytes()
         == interrupted.calls[0].paths.checkpoint.read_bytes()
     )
-    assert resumed.calls[1].input_checkpoint != resumed.calls[0].paths.checkpoint
-    assert resumed.calls[1].input_checkpoint.name == "verified-input.restart.h5"
+    assert str(resumed.calls[1].input_checkpoint).startswith("/proc/self/fd/")
     assert (
-        resumed.calls[1].input_checkpoint.read_bytes()
+        resumed.calls[1].paths.input_checkpoint_copy.read_bytes()
         == resumed.calls[0].paths.checkpoint.read_bytes()
     )
     assert final["status"] == "complete"
