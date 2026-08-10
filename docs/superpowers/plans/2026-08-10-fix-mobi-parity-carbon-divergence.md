@@ -1342,81 +1342,59 @@ Expected: no unresolved critical or important findings. Reproduce any reported d
 ### Task 9: Run and prove the 60-year four-degree integration
 
 **Files:**
-- Copy outside Git: `/home/nutrik/Documents/bugfix/validation/mobi-parity-60y/bgc_global_four_degree.py`
-- Copy outside Git: `/home/nutrik/Documents/bugfix/validation/mobi-parity-60y/assets.yml`
-- Copy outside Git: `/home/nutrik/Documents/bugfix/validation/mobi-parity-60y/npzd.yml`
-- Generate outside Git: `/home/nutrik/Documents/bugfix/validation/mobi-parity-60y/4deg.snapshot.nc`
-- Generate outside Git: `/home/nutrik/Documents/bugfix/validation/mobi-parity-60y/run.log`
+- Generate outside Git: immutable attempt directories, checkpoints, snapshots, logs, `progress.json`, and a merged snapshot below `/home/nutrik/Documents/bugfix/validation/mobi-parity-60y/`
 - Create after PASS: `docs/validation/2026-08-10-mobi-parity-60-year.md`
 
 **Interfaces:**
-- Consumes: feature-branch package, Veros v0.2.3 worktree, copied four-degree setup, and `validate_snapshot` from Task 7.
-- Produces: 60 annual snapshots and committed compact validation evidence satisfying every approved acceptance criterion.
+- Consumes: the committed feature-branch package, clean pinned Veros v0.2.3 worktree, `scripts/run_segmented_60_year.py`, and `validate_snapshot` from Task 7.
+- Produces: 60 immutable annual records, a manifest-authenticated merged snapshot, and committed compact validation evidence satisfying every approved acceptance criterion.
 
-- [ ] **Step 1: Record exact source identities and prepare an empty run directory**
+- [ ] **Step 1: Start the production protocol in a new empty absolute root**
 
-Run:
+The root below is dedicated to this run. It must be new and empty: do not reuse a prior run root, copy setup files, patch a setup, or add any manual segment/duration/snapshot overrides. The runner's production defaults are exactly 60 annual immutable segments of 360 model days, with one annual snapshot per segment.
+
+Record the identities and confirm the root does not already exist:
 
 ```bash
 git rev-parse HEAD
 git -C /home/nutrik/Documents/bugfix/.worktrees/veros-v0.2.3 rev-parse HEAD
 git status --short --branch
-mkdir -p /home/nutrik/Documents/bugfix/validation/mobi-parity-60y
+test ! -e /home/nutrik/Documents/bugfix/validation/mobi-parity-60y
 ```
 
-Expected: Veros prints `bcbead95d56341f3ee9f30311c05a546674095e7`; the plugin worktree is clean. Before copying, verify the run directory does not contain an older `4deg.snapshot.nc`; if it does, choose a new directory suffixed by the feature commit rather than overwriting evidence.
-
-- [ ] **Step 2: Copy the self-contained setup and set exactly 60 model years**
-
-Copy these three package files into the run directory:
+Expected: Veros prints `bcbead95d56341f3ee9f30311c05a546674095e7`, the plugin worktree is clean, and the dedicated output root is absent before the new run. Start it only with the production command:
 
 ```bash
-cp veros_bgc/setup/bgc_global_4deg/bgc_global_four_degree.py /home/nutrik/Documents/bugfix/validation/mobi-parity-60y/
-cp veros_bgc/setup/bgc_global_4deg/assets.yml /home/nutrik/Documents/bugfix/validation/mobi-parity-60y/
-cp veros_bgc/setup/bgc_global_4deg/npzd.yml /home/nutrik/Documents/bugfix/validation/mobi-parity-60y/
+.venv/bin/python scripts/run_segmented_60_year.py new /home/nutrik/Documents/bugfix/validation/mobi-parity-60y
 ```
 
-Use `apply_patch` on the copied setup to change only:
+The runner creates a locked manifest at `progress.json`, records the feature commit/content fingerprint and pinned Veros identity, and commits each segment's snapshot, checkpoint, diagnostics, log, and SHA-256 hashes only after validation. It automatically validates checkpoint time, iteration, and time-level pointers; later segments restart only from a verified private copy of the prior committed checkpoint. Do not modify artifacts under the root.
 
-```python
-        vs.runlen = 86400.0 * 360 * 60
-```
+- [ ] **Step 2: Resume safely after interruption until the run completes**
 
-Keep the existing annual snapshot frequency `360 * 86400.0`, the fixed setup constants from Task 6, and the stress-derived wind forcing unchanged.
-
-- [ ] **Step 3: Execute the integration to normal completion**
-
-Run from `/home/nutrik/Documents/bugfix/validation/mobi-parity-60y` in a persistent PTY:
+If the command is interrupted or reports fewer than 60 committed segments, continue with the same root and no overrides:
 
 ```bash
-script -q -e -c "/home/nutrik/Documents/bugfix/veros-bgc/.worktrees/fix-mobi-parity-carbon-divergence/.venv/bin/python bgc_global_four_degree.py" run.log
+.venv/bin/python scripts/run_segmented_60_year.py resume /home/nutrik/Documents/bugfix/validation/mobi-parity-60y
 ```
 
-Confirm this exact worktree path with `git worktree list` before starting. Poll the PTY at intervals below 60 seconds, report annual progress, and preserve the complete log. Expected: exit status 0 after year 60, without a traceback, NaN warning, nonpositive-root error, or solver-validation error.
+Repeat this command as needed. On the final segment the runner automatically merges every committed annual snapshot, verifies the merge schema and exact time sequence, invokes the real 60-year `validate_snapshot` validator (not smoke validation), hashes the merged NetCDF, and stores its path and validation metrics in `progress.json`.
 
-- [ ] **Step 4: Apply the machine acceptance contract**
+- [ ] **Step 3: Discover, independently validate, and commit the real acceptance evidence**
 
-Run from the feature worktree:
+After the runner reports its merged snapshot, discover the authoritative path from the manifest rather than assuming a fixed filename:
 
 ```bash
-.venv/bin/python scripts/validate_60_year_run.py /home/nutrik/Documents/bugfix/validation/mobi-parity-60y/4deg.snapshot.nc
-.venv/bin/python scripts/validate_60_year_run.py /home/nutrik/Documents/bugfix/validation/mobi-parity-60y/4deg.snapshot.nc --markdown
+MERGED_SNAPSHOT="$(.venv/bin/python -c 'import json; from pathlib import Path; root = Path("/home/nutrik/Documents/bugfix/validation/mobi-parity-60y"); print(json.loads((root / "progress.json").read_text(encoding="utf-8"))["merged_snapshot"])')"
+.venv/bin/python scripts/validate_60_year_run.py "$MERGED_SNAPSHOT"
+.venv/bin/python scripts/validate_60_year_run.py "$MERGED_SNAPSHOT" --markdown
 ```
 
-Expected: the first command prints `PASS`; the second prints a complete Markdown metrics table ending in `Acceptance result: **PASS**`. It must report 60 snapshots, finite required fields, bounded positive `hSWS`, nonnegative DIC/alkalinity, and year-60 DIC/alkalinity maxima below ten times year 1.
+Expected: `progress.json` has `status` `complete`, exactly 60 `committed_segments`, and the merged path/hash/validation. The validator prints `PASS`; its Markdown ends in `Acceptance result: **PASS**`; and the merged NetCDF contains exactly 60 annual `Time` records. It also proves finite required wet fields, bounded positive `hSWS`, nonnegative DIC/alkalinity, and year-60 DIC/alkalinity maxima below ten times year 1.
 
-- [ ] **Step 5: Commit exact validation evidence**
+Use `apply_patch` to create `docs/validation/2026-08-10-mobi-parity-60-year.md` from the actual `--markdown` output. Add concrete provenance above the table: feature commit, Veros commit `bcbead95d56341f3ee9f30311c05a546674095e7`, runtime versions, the exact production and validator commands, the manifest-derived merged path, and confirmation that wind reconstruction was retained.
 
-Use `apply_patch` to create `docs/validation/2026-08-10-mobi-parity-60-year.md` from the actual `--markdown` output. Add these concrete provenance sections above the generated table:
-
-- the feature commit from Step 1;
-- Veros commit `bcbead95d56341f3ee9f30311c05a546674095e7`;
-- Python, NumPy, h5netcdf, and Veros-BGC versions printed by the isolated environment;
-- the exact run and validator commands from Steps 3–4;
-- the local log and snapshot paths;
-- confirmation that wind reconstruction was retained.
-
-Do not copy the NetCDF file, log, virtual environment, asset cache, or copied setup into Git. Then run:
+Do not add the NetCDF, immutable attempt files, logs, checkpoint copies, virtual environment, or asset cache to Git. Then run:
 
 ```bash
 git add docs/validation/2026-08-10-mobi-parity-60-year.md
@@ -1441,13 +1419,14 @@ Use `superpowers:verification-before-completion`, then run each command separate
 ```bash
 .venv/bin/python -m pytest -q
 .venv/bin/python -m compileall -q veros_bgc test scripts
-.venv/bin/python scripts/validate_60_year_run.py /home/nutrik/Documents/bugfix/validation/mobi-parity-60y/4deg.snapshot.nc
+MERGED_SNAPSHOT="$(.venv/bin/python -c 'import json; from pathlib import Path; root = Path("/home/nutrik/Documents/bugfix/validation/mobi-parity-60y"); print(json.loads((root / "progress.json").read_text(encoding="utf-8"))["merged_snapshot"])')"
+.venv/bin/python scripts/validate_60_year_run.py "$MERGED_SNAPSHOT"
 git diff --check master...HEAD
 git status --short --branch
 git diff --stat master...HEAD
 ```
 
-Expected: tests pass; compilation and diff check are silent; validator prints `PASS`; worktree is clean; the diff contains source, tests, analysis/design/plan, and compact validation Markdown only.
+Expected: tests pass; compilation and diff check are silent; the manifest-derived merged snapshot prints `PASS` and has exactly 60 annual records; the worktree is clean; the diff contains source, tests, analysis/design/plan, and compact validation Markdown only.
 
 - [ ] **Step 2: Inspect the final commit series and excluded files**
 
