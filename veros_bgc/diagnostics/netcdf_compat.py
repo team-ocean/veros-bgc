@@ -62,9 +62,11 @@ def initialize_file(vs, outfile):
 
     outfile.dimensions["Time"] = None
     time_variable = outfile.create_variable("Time", ("Time",), float)
-    time_variable.long_name = "Time"
-    time_variable.units = "days"
-    time_variable.time_origin = "01-JAN-1900 00:00:00"
+    time_variable.attrs.update(
+        long_name="Time",
+        units="days",
+        time_origin="01-JAN-1900 00:00:00",
+    )
 
 
 class H5NetCDF1OutputMixin:
