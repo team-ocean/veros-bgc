@@ -188,21 +188,34 @@ def test_selected_atmospheric_flux_changes_dic_but_not_alkalinity(monkeypatch):
     np.testing.assert_allclose(changes["alkalinity"][surface_cell], 0.0)
 
 
-def test_calcite_production_contains_all_and_only_mobi_terms():
+@pytest.mark.parametrize(
+    "mortality_key,grazing_key,rate,assimilation_efficiency,"
+    "expected_dic,expected_calcite,expected_alkalinity",
+    [
+        ("phytoplankton", None, 2.0, 0.1, -3.0, 3.0, -6.0),
+        ("zooplankton", None, 3.0, 0.8, -4.5, 4.5, -9.0),
+        (None, "phytoplankton", 4.0, 0.2, -4.8, 4.8, -9.6),
+        (None, "zooplankton", 7.0, 0.6, -4.2, 4.2, -8.4),
+    ],
+)
+def test_calcite_production_contains_all_and_only_mobi_terms(
+        mortality_key, grazing_key, rate, assimilation_efficiency, expected_dic,
+        expected_calcite, expected_alkalinity):
     vs = make_npzd_state()
     zero_process_rates(vs)
-    vs.mortality["phytoplankton"][...] = 1.0
-    vs.mortality["zooplankton"][...] = 2.0
-    vs.grazing["phytoplankton"][...] = 3.0
-    vs.grazing["zooplankton"][...] = 4.0
     vs.grazing["detritus"][...] = 100.0
-    vs.assimilation_efficiency = 0.5
-    vs.capr = 1.0
-    vs.redfield_ratio_CN = 1.0
+    vs.assimilation_efficiency = assimilation_efficiency
+    vs.capr = 0.25
+    vs.redfield_ratio_CN = 6.0
+
+    if mortality_key is not None:
+        vs.mortality[mortality_key][...] = rate
+    if grazing_key is not None:
+        vs.grazing[grazing_key][...] = rate
 
     carbon = calcite_production(vs, "DIC", "caco3")
     alkalinity = calcite_production_alk(vs, "alkalinity", "caco3")
 
-    np.testing.assert_allclose(carbon["DIC"], -6.5)
-    np.testing.assert_allclose(carbon["caco3"], 6.5)
-    np.testing.assert_allclose(alkalinity["alkalinity"], -13.0)
+    np.testing.assert_allclose(carbon["DIC"], expected_dic)
+    np.testing.assert_allclose(carbon["caco3"], expected_calcite)
+    np.testing.assert_allclose(alkalinity["alkalinity"], expected_alkalinity)
