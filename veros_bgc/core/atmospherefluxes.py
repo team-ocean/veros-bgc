@@ -45,8 +45,13 @@ def carbon_flux(vs):
     xconv = 0.337 / 3.6e5
     xconv *= 0.75  # NOTE: This seems like an approximation I don't know where they got it
 
-    vs.dco2star = co2calc_SWS(vs, vs.temp[:, :, -1, vs.tau],  # [degree C]
-                              vs.salt[:, :, -1, vs.tau],  # [g/kg]
+    surface_temperature = vs.temp[:, :, -1, vs.tau]
+    surface_salinity = vs.salt[:, :, -1, vs.tau]
+    chemistry_temperature = np.maximum(-2.0, np.minimum(35.0, surface_temperature))
+    chemistry_salinity = np.maximum(0.0, np.minimum(45.0, surface_salinity))
+
+    vs.dco2star = co2calc_SWS(vs, chemistry_temperature,  # [degree C]
+                              chemistry_salinity,  # [g/kg]
                               vs.dic[:, :, -1, vs.tau] * 1e-3,  # [mmol -> mol]
                               vs.alkalinity[:, :, -1, vs.tau] * 1e-3,  # [mmol -> mol]
                               vs.atmospheric_co2,  # [ppmv]
@@ -160,7 +165,7 @@ def co2calc_SWS(vs, temperature, salinity, dic_in, ta_in, co2_in, atmospheric_pr
     # k2 = [H][CO3]/[HCO3]
     # Millero p.664 (1995) using Mehrbach et al. data on SEAWATER scale
     # (Original reference: Dickson and Millero, DSR, 1987)
-    k1 = 10 ** (-1.0 * (3670.7 / temperature_in_kelvin - 62.088 + 9.7944 * np.log(temperature_in_kelvin)
+    k1 = 10 ** (-1.0 * (3670.7 / temperature_in_kelvin - 62.008 + 9.7944 * np.log(temperature_in_kelvin)
                 - 0.0118 * salinity + 0.000116 * salinity**2))
 
     k2 = 10 ** (-1 * (1394.7 / temperature_in_kelvin + 4.777 - 0.0184 * salinity + 0.000118 * salinity**2))
@@ -239,23 +244,18 @@ def co2calc_SWS(vs, temperature, salinity, dic_in, ta_in, co2_in, atmospheric_pr
 
     xacc = 1e-10
 
-    # NOTE hSWS should never exceed the safe values, but we can check it
-    limit_min = 1e-8
-    boundary = np.maximum(limit_min,
-                          np.minimum(1e-6 - vs.hSWS, vs.hSWS - 1e-10))
-
-    # boundary guesses are placed equidistant from the guessed best solution
-    in1 = vs.hSWS + boundary  # input guess 1
-    in2 = vs.hSWS - boundary  # input guess 2
+    in1 = np.full_like(vs.hSWS, 1e-10)
+    in2 = np.full_like(vs.hSWS, 1e-6)
 
     # where to run the optimization - skip land
     iter_mask = np.empty_like(in1, dtype=np.bool)
     iter_mask[...] = vs.maskT[:, :, -1]
 
     # Find hSWS by root finding algorithm
-    vs.hSWS = drtsafe_masked(vs, iter_mask, ta_iter_SWS, in1, in2,
-                             args=(k1, k2, k1p, k2p, k3p, st, ks, kf, ft,
-                                   dic, ta, sit, ksi, pt, bt, kw, kb), accuracy=xacc)
+    solved_hsws = drtsafe_masked(vs, iter_mask, ta_iter_SWS, in1, in2,
+                                 args=(k1, k2, k1p, k2p, k3p, st, ks, kf, ft,
+                                       dic, ta, sit, ksi, pt, bt, kw, kb), accuracy=xacc)
+    vs.hSWS = np.where(iter_mask, solved_hsws, vs.hSWS)
 
     # Calculate [CO2*] as defined in DOE Methods Handbook 1993 Ver. 2,
     # ORNL/CDIC-74, Dickson and Goyet, eds. (Ch 2 p 1+, Eq A.49)
