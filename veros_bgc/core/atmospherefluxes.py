@@ -634,7 +634,9 @@ def drtsafe_step(vs, mask, drtsafe_val, x_high, df, f, x_low, dx, dx_old, accura
         tmp_mask = np.logical_or(tmp_mask, (np.abs(2.0 * f[mask]) > np.abs(dx_old[mask] * df[mask])))
 
         dx_old[:] = dx.copy()
-        dx[mask] = np.where(tmp_mask, 0.5 * (x_high[mask] - x_low[mask]), f[mask] / df[mask])
+        step = 0.5 * (x_high[mask] - x_low[mask])
+        np.divide(f[mask], df[mask], out=step, where=~tmp_mask)
+        dx[mask] = step
         drtsafe_val[mask] = np.where(tmp_mask, x_low[mask] + dx[mask], drtsafe_val[mask] - dx[mask])
 
         mask[mask] = np.abs(dx[mask]) > accuracy

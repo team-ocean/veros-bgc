@@ -6,7 +6,6 @@ from veros.state import VerosState
 
 from veros_bgc.core import atmospherefluxes
 from veros_bgc.core.npzd import setupNPZD, solar_declination
-from veros_bgc.core.npzd_rules import calcite_production, calcite_production_alk
 from veros_bgc.setup.bgc_global_4deg.bgc_global_four_degree import GlobalFourDegreeBGC
 
 
@@ -190,36 +189,36 @@ def test_selected_atmospheric_flux_changes_dic_but_not_alkalinity(monkeypatch):
 
 
 @pytest.mark.parametrize(
-    "mortality_key,grazing_key,rate,assimilation_efficiency,"
+    "mortality_key,grazing_key,rate,"
     "expected_dic,expected_calcite,expected_alkalinity",
     [
-        ("phytoplankton", None, 2.0, 0.1, -3.0, 3.0, -6.0),
-        ("zooplankton", None, 3.0, 0.8, -4.5, 4.5, -9.0),
-        (None, "phytoplankton", 4.0, 0.2, -4.8, 4.8, -9.6),
-        (None, "zooplankton", 7.0, 0.6, -4.2, 4.2, -8.4),
+        ("phytoplankton", None, 2.0, -2.84, 2.84, -5.68),
+        ("zooplankton", None, 3.0, -4.26, 4.26, -8.52),
+        (None, "phytoplankton", 4.0, -1.42, 1.42, -2.84),
+        (None, "zooplankton", 5.0, -1.775, 1.775, -3.55),
+        (None, "detritus", 100.0, 0.0, 0.0, 0.0),
     ],
 )
-def test_calcite_production_contains_all_and_only_mobi_terms(
-        mortality_key, grazing_key, rate, assimilation_efficiency, expected_dic,
+def test_selected_calcite_rules_apply_only_mobi_production_terms(
+        mortality_key, grazing_key, rate, expected_dic,
         expected_calcite, expected_alkalinity):
     vs = make_npzd_state()
     zero_process_rates(vs)
-    vs.grazing["detritus"][...] = 100.0
-    vs.assimilation_efficiency = assimilation_efficiency
-    vs.capr = 0.25
-    vs.redfield_ratio_CN = 6.0
+    vs.assimilation_efficiency = 0.75
+    vs.capr = 0.2
+    vs.redfield_ratio_CN = 7.1
 
     if mortality_key is not None:
         vs.mortality[mortality_key][...] = rate
     if grazing_key is not None:
         vs.grazing[grazing_key][...] = rate
 
-    carbon = calcite_production(vs, "DIC", "caco3")
-    alkalinity = calcite_production_alk(vs, "alkalinity", "caco3")
+    changes = selected_primary_changes(vs)
+    wet_cell = (2, 2, -1)
 
-    np.testing.assert_allclose(carbon["DIC"], expected_dic)
-    np.testing.assert_allclose(carbon["caco3"], expected_calcite)
-    np.testing.assert_allclose(alkalinity["alkalinity"], expected_alkalinity)
+    np.testing.assert_allclose(changes["DIC"][wet_cell], expected_dic)
+    np.testing.assert_allclose(changes["caco3"][wet_cell], expected_calcite)
+    np.testing.assert_allclose(changes["alkalinity"][wet_cell], expected_alkalinity)
 
 
 def test_solar_declination_uses_mobi_phase_at_model_time_zero():

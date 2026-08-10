@@ -1,6 +1,6 @@
 # MOBI parity and carbon-divergence correction design
 
-Date: 2026-08-10  
+Date: 2026-08-10
 Status: Approved in conversation
 
 ## Objective
@@ -172,4 +172,3 @@ Before publication, the branch will receive a whole-change review and fresh veri
 - the absence of generated datasets or environment files from Git.
 
 The branch will then be pushed and a GitHub pull request will be created with the failure evidence, correction summary, test results, and 60-year validation linked from its description.
-

@@ -218,4 +218,3 @@ The final acceptance run will use Veros v0.2.3 and the fixed Veros-BGC plugin in
 - all new and existing tests pass.
 
 Large NetCDF output will remain local. The reproducible environment, command, configuration, annual summary metrics, and acceptance result will be committed as Markdown evidence before a pull request is opened.
-

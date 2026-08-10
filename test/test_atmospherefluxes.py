@@ -110,6 +110,28 @@ def test_drtsafe_masked_reports_iteration_exhaustion():
         )
 
 
+def exact_root_with_zero_derivative(vs, mask, x, root):
+    return x - root, np.zeros_like(x)
+
+
+def test_drtsafe_masked_does_not_divide_by_zero_at_exact_interior_root():
+    vs = VerosState()
+    active = np.ones(SHAPE, dtype=bool)
+
+    with np.errstate(all="raise"):
+        result = drtsafe_masked(
+            vs,
+            active,
+            exact_root_with_zero_derivative,
+            full(1e-10),
+            full(1e-6),
+            args=(full(5.0005e-7),),
+            accuracy=1e-12,
+        )
+
+    np.testing.assert_allclose(result, 5.0005e-7, rtol=0.0, atol=1e-12)
+
+
 def make_carbon_state():
     vs = VerosState(use_plugins=(veros_bgc,))
     vs.nx, vs.ny, vs.nz = 2, 1, 1
