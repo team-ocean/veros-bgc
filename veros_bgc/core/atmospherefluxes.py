@@ -605,7 +605,7 @@ def drtsafe_step(vs, mask, drtsafe_val, x_high, df, f, x_low, dx, dx_old, accura
                 double step1 = (drtsafe_val[i] - x_high[i]) * df[i] - f[i];
                 double step2 = (drtsafe_val[i] - x_low[i]) * df[i] - f[i];
                 bool step_inside = (step1 * step2) >= 0;
-                bool tmp_mask = step_inside || (abs(2.0 * f[i]) > abs(dx_old[i] * df[i]));
+                bool tmp_mask = step_inside || (fabs(2.0 * f[i]) > fabs(dx_old[i] * df[i]));
 
                 dx_old[i] = dx[i];
                 if (tmp_mask) {
@@ -674,35 +674,118 @@ def drtsafe_masked(vs, mask, function, guess_low, guess_high, args=None,
     Parameter values minimizing the function value
     """
 
-    # Initial guess and step size
+    args = () if args is None else args
+    active_mask = mask.copy()
+    work_mask = active_mask.copy()
+
     drtsafe_val = 0.5 * (guess_low + guess_high)
     dx = np.abs(guess_high - guess_low)
     dx_old = dx.copy()
 
-    # Function value at boundaries and guess
-    f_low, _ = function(vs, mask, guess_low, *args)
-    f_high, _ = function(vs, mask, guess_high, *args)
-    f, df = function(vs, mask, drtsafe_val, *args)
+    f_low, df_low = function(vs, active_mask, guess_low, *args)
+    f_high, df_high = function(vs, active_mask, guess_high, *args)
+    f, df = function(vs, active_mask, drtsafe_val, *args)
 
-    # Ensure low values have negative function value
-    # and high has positive
-    x_low, x_high, f_low, f_high = np.where(f_low < 0,
-                                            (guess_low, guess_high, f_low, f_high),
-                                            (guess_high, guess_low, f_high, f_low))
+    bad_endpoint = active_mask & ~(
+        np.isfinite(f_low) & np.isfinite(df_low)
+        & np.isfinite(f_high) & np.isfinite(df_high)
+    )
+    if bad_endpoint.any():
+        raise RuntimeError(
+            "drtsafe_masked received non-finite endpoint values in {} active cells".format(
+                np.count_nonzero(bad_endpoint)
+            )
+        )
+
+    low_tolerance = 2 * accuracy * np.maximum(np.abs(df_low), 1.0)
+    high_tolerance = 2 * accuracy * np.maximum(np.abs(df_high), 1.0)
+    low_done = active_mask & (np.abs(f_low) <= low_tolerance)
+    high_done = active_mask & ~low_done & (np.abs(f_high) <= high_tolerance)
+    drtsafe_val[low_done] = guess_low[low_done]
+    drtsafe_val[high_done] = guess_high[high_done]
+    work_mask[low_done | high_done] = False
+
+    same_sign = work_mask & (np.signbit(f_low) == np.signbit(f_high))
+    if same_sign.any():
+        raise RuntimeError(
+            "drtsafe_masked root is not bracketed in {} active cells".format(
+                np.count_nonzero(same_sign)
+            )
+        )
+
+    bad_initial = work_mask & ~(np.isfinite(f) & np.isfinite(df))
+    if bad_initial.any():
+        raise RuntimeError(
+            "drtsafe_masked received non-finite iterates in {} active cells".format(
+                np.count_nonzero(bad_initial)
+            )
+        )
+
+    x_low, x_high, f_low, f_high = np.where(
+        f_low < 0,
+        (guess_low, guess_high, f_low, f_high),
+        (guess_high, guess_low, f_high, f_low),
+    )
 
     for _ in range(max_iterations):
-
-        # update step size, step and mask
-        drtsafe_step(vs, mask, drtsafe_val, x_high, df, f, x_low, dx, dx_old, accuracy)
-
-        if not mask.any():  # complete
+        if not work_mask.any():
             break
 
-        # Update function for next step
-        f, df = function(vs, mask, drtsafe_val, *args)
+        drtsafe_step(
+            vs, work_mask, drtsafe_val, x_high, df, f,
+            x_low, dx, dx_old, accuracy,
+        )
 
-        # Update search boundaries
-        drtsafe_boundary_update(vs, mask, x_low, x_high, df, f, f_low, f_high, drtsafe_val)
+        if not work_mask.any():
+            break
+
+        f, df = function(vs, work_mask, drtsafe_val, *args)
+        bad_iterate = work_mask & ~(np.isfinite(f) & np.isfinite(df))
+        if bad_iterate.any():
+            raise RuntimeError(
+                "drtsafe_masked received non-finite iterates in {} active cells".format(
+                    np.count_nonzero(bad_iterate)
+                )
+            )
+
+        drtsafe_boundary_update(
+            vs, work_mask, x_low, x_high, df, f,
+            f_low, f_high, drtsafe_val,
+        )
+
+    if work_mask.any():
+        raise RuntimeError(
+            "drtsafe_masked did not converge in {} active cells after {} iterations".format(
+                np.count_nonzero(work_mask), max_iterations
+            )
+        )
+
+    final_f, final_df = function(vs, active_mask, drtsafe_val, *args)
+    lower_bound = np.minimum(guess_low, guess_high)
+    upper_bound = np.maximum(guess_low, guess_high)
+    invalid_root = active_mask & ~(
+        np.isfinite(drtsafe_val)
+        & np.isfinite(final_f)
+        & np.isfinite(final_df)
+        & (drtsafe_val > 0)
+        & (drtsafe_val >= lower_bound)
+        & (drtsafe_val <= upper_bound)
+    )
+    if invalid_root.any():
+        raise RuntimeError(
+            "drtsafe_masked returned invalid roots in {} active cells".format(
+                np.count_nonzero(invalid_root)
+            )
+        )
+
+    residual_tolerance = 2 * accuracy * np.maximum(np.abs(final_df), 1.0)
+    bad_residual = active_mask & (np.abs(final_f) > residual_tolerance)
+    if bad_residual.any():
+        raise RuntimeError(
+            "drtsafe_masked final residual is too large in {} active cells".format(
+                np.count_nonzero(bad_residual)
+            )
+        )
 
     return drtsafe_val
 
