@@ -6,6 +6,7 @@ from veros.state import VerosState
 
 from veros_bgc.core import atmospherefluxes
 from veros_bgc.core.npzd import setupNPZD
+from veros_bgc.core.npzd_rules import calcite_production, calcite_production_alk
 
 
 DZT = np.array([40.0, 30.0, 20.0, 10.0])
@@ -46,6 +47,7 @@ def zero_process_rates(vs):
     }
     vs.grazing = {
         "phytoplankton": zero.copy(),
+        "zooplankton": zero.copy(),
         "detritus": zero.copy(),
     }
     vs.sloppy_feeding = {"phytoplankton": zero.copy(), "zooplankton": zero.copy()}
@@ -184,3 +186,23 @@ def test_selected_atmospheric_flux_changes_dic_but_not_alkalinity(monkeypatch):
         2.0 * vs.dt_tracer / vs.dzt[-1],
     )
     np.testing.assert_allclose(changes["alkalinity"][surface_cell], 0.0)
+
+
+def test_calcite_production_contains_all_and_only_mobi_terms():
+    vs = make_npzd_state()
+    zero_process_rates(vs)
+    vs.mortality["phytoplankton"][...] = 1.0
+    vs.mortality["zooplankton"][...] = 2.0
+    vs.grazing["phytoplankton"][...] = 3.0
+    vs.grazing["zooplankton"][...] = 4.0
+    vs.grazing["detritus"][...] = 100.0
+    vs.assimilation_efficiency = 0.5
+    vs.capr = 1.0
+    vs.redfield_ratio_CN = 1.0
+
+    carbon = calcite_production(vs, "DIC", "caco3")
+    alkalinity = calcite_production_alk(vs, "alkalinity", "caco3")
+
+    np.testing.assert_allclose(carbon["DIC"], -6.5)
+    np.testing.assert_allclose(carbon["caco3"], 6.5)
+    np.testing.assert_allclose(alkalinity["alkalinity"], -13.0)

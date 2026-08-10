@@ -539,7 +539,7 @@ def setup_carbon_npzd_rules(vs):
     from .npzd_rules import co2_surface_flux, recycling_to_dic, \
         primary_production_from_DIC, excretion_dic, recycling_phyto_to_dic, \
         primary_production_alk, recycling_alk, excretion_alk, \
-        bottom_remineralization_alk, calcite_production_phyto, calcite_production_phyto_alk, \
+        bottom_remineralization_alk, calcite_production, calcite_production_alk, \
         post_redistribute_calcite, post_redistribute_calcite_alk, pre_reset_calcite, \
         bottom_remineralization_detritus_DIC
 
@@ -602,10 +602,10 @@ def setup_carbon_npzd_rules(vs):
                        (excretion_alk, 'zooplankton', 'alkalinity'),
                        label='Excretion')
     register_npzd_rule(vs, 'npzd_carbon_calcite_production_dic',
-                       (calcite_production_phyto, 'DIC', 'caco3'),
+                       (calcite_production, 'DIC', 'caco3'),
                        label='Production of calcite')
     register_npzd_rule(vs, 'npzd_carbon_calcite_production_alk',
-                       (calcite_production_phyto_alk, 'alkalinity', 'caco3'),
+                       (calcite_production_alk, 'alkalinity', 'caco3'),
                        label='Production of calcite')
 
     # BOTTOM

@@ -100,41 +100,24 @@ def excretion_dic(vs, zooplankton, nutrient):
 
 
 @veros_method(inline=True)
-def calcite_production(vs, plankton, DIC, calcite):
-    """Calcite is produced at a rate similar to detritus
-
-    Intended for use with a smoothing rule
-    If explicit tracking of calcite is desired use
-    rules for the explicit relationship
-    """
-
-    # changes to production of calcite
-    dprca = (vs.mortality[plankton] + vs.grazing[plankton] *
-             (1 - vs.assimilation_efficiency)) * vs.capr * vs.redfield_ratio_CN
-
+def calcite_production(vs, DIC, calcite):
+    """Produce calcite from MOBI mortality and sloppy-grazing pathways."""
+    dprca = (
+        vs.mortality['phytoplankton']
+        + vs.mortality['zooplankton']
+        + (
+            vs.grazing['phytoplankton']
+            + vs.grazing['zooplankton']
+        ) * (1 - vs.assimilation_efficiency)
+    ) * vs.capr * vs.redfield_ratio_CN
     return {DIC: -dprca, calcite: dprca}
 
 
 @veros_method(inline=True)
-def calcite_production_alk(vs, plankton, alkalinity, calcite):
-    """alkalinity is scaled by DIC consumption"""
-    return {alkalinity: 2 * calcite_production(vs, plankton, 'DIC', calcite)['DIC']}
-
-
-@veros_method(inline=True)
-def calcite_production_phyto(vs, DIC, calcite):
-    """DIC is consumed to produce calcite.
-
-    How much depends on the mortality and sloppy feeding of and on phytoplankton and zooplankton
-    """
-    return calcite_production(vs, 'phytoplankton', DIC, calcite)
-
-
-@veros_method(inline=True)
-def calcite_production_phyto_alk(vs, alkalinity, calcite):
-    """Scaled version off calcite_production_phyto for alkalinity"""
-    return calcite_production_alk(vs, 'phytoplankton', alkalinity, calcite)
-
+def calcite_production_alk(vs, alkalinity, calcite):
+    """Apply the two-equivalent alkalinity cost of calcite production."""
+    dic_change = calcite_production(vs, 'DIC', calcite)['DIC']
+    return {alkalinity: 2 * dic_change}
 
 @veros_method(inline=True)
 def post_redistribute_calcite(vs, calcite, tracer):
