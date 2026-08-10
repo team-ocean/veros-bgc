@@ -5,8 +5,9 @@ import veros_bgc
 from veros.state import VerosState
 
 from veros_bgc.core import atmospherefluxes
-from veros_bgc.core.npzd import setupNPZD
+from veros_bgc.core.npzd import setupNPZD, solar_declination
 from veros_bgc.core.npzd_rules import calcite_production, calcite_production_alk
+from veros_bgc.setup.bgc_global_4deg.bgc_global_four_degree import GlobalFourDegreeBGC
 
 
 DZT = np.array([40.0, 30.0, 20.0, 10.0])
@@ -219,3 +220,27 @@ def test_calcite_production_contains_all_and_only_mobi_terms(
     np.testing.assert_allclose(carbon["DIC"], expected_dic)
     np.testing.assert_allclose(carbon["caco3"], expected_calcite)
     np.testing.assert_allclose(alkalinity["alkalinity"], expected_alkalinity)
+
+
+def test_solar_declination_uses_mobi_phase_at_model_time_zero():
+    vs = VerosState(use_plugins=(veros_bgc,))
+    vs.time = 0.0
+
+    np.testing.assert_allclose(
+        solar_declination(vs),
+        -0.3929149002914755,
+        rtol=0.0,
+        atol=1e-15,
+    )
+
+
+def test_four_degree_setup_uses_eight_bio_steps_and_mobi_calcite_scale():
+    setup = GlobalFourDegreeBGC()
+    vs = VerosState(use_plugins=(veros_bgc,))
+
+    setup.set_parameter(vs)
+
+    assert vs.dt_tracer == 86400.0
+    assert vs.dt_bio == 10800.0
+    assert int(vs.dt_tracer // vs.dt_bio) == 8
+    assert vs.dcaco3 == 6500

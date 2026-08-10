@@ -10,6 +10,15 @@ from veros.core import diffusion, thermodynamics, utilities, isoneutral
 from veros.variables import allocate
 
 
+@veros_method(inline=True)
+def solar_declination(vs):
+    """Return MOBI solar declination for the current model time."""
+    return np.sin(
+        (np.mod(vs.time * time.SECONDS_TO_X['years'], 1) - 0.22)
+        * 2.0 * np.pi
+    ) * 0.4
+
+
 @veros_method
 def biogeochemistry(vs):
     """Control function for integration of biogeochemistry
@@ -63,9 +72,7 @@ def biogeochemistry(vs):
     swr[:, :] *= np.exp(-vs.light_attenuation_ice * icemask[:, :, np.newaxis])
 
     # declination and fraction of day with daylight
-    # 0.72 is fraction of year at aphelion
-    # 0.4 is scaling based on angle of rotation
-    declin = np.sin((np.mod(vs.time * time.SECONDS_TO_X['years'], 1) - 0.72) * 2.0 * np.pi) * 0.4
+    declin = solar_declination(vs)
     radian = 2 * np.pi / 360  # bohrium doesn't support np.radians, so this is faster
     rctheta = np.maximum(-1.5, np.minimum(1.5, vs.yt * radian - declin))
 
