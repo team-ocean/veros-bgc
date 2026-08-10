@@ -22,6 +22,8 @@
 - Apply local source edits with `apply_patch`; use formatting or generation commands only for mechanical outputs.
 - Commit after every independently passing task.
 - Do not publish a pull request unless every focused test, the full suite, compilation, diff checks, review, and the 60-year acceptance contract pass.
+- Approved pre-flight ruling: NPZD tests must assert selected-rule outcomes and conservation, not private rule names or the absence of removed registrations.
+- Approved pre-flight ruling: the generated Bohrium C-kernel change from floating-point `abs` to `fabs` is a narrow TDD exception because the backend is unavailable and a source-text assertion would be a change-detector test; verify it through compilation and review.
 
 ## File Structure
 
@@ -313,6 +315,8 @@ In the generated C kernel inside `drtsafe_step`, change only the floating-point 
 bool tmp_mask = step_inside || (fabs(2.0 * f[i]) > fabs(dx_old[i] * df[i]));
 ```
 
+This generated string is the user-approved narrow TDD exception recorded in Global Constraints. Do not add a source-text test for it; compilation and task review are its verification.
+
 - [ ] **Step 5: Run the focused tests and verify GREEN**
 
 Run:
@@ -560,26 +564,51 @@ def make_npzd_state():
     return vs
 
 
-def test_active_excretion_rule_closes_phosphorus_and_carbon_budgets():
+def zero_process_rates(vs):
+    for collection in (
+        vs.net_primary_production,
+        vs.recycled,
+        vs.mortality,
+        vs.grazing,
+        vs.npzd_export,
+    ):
+        for value in collection.values():
+            value[...] = 0.0
+    vs.excretion_total[...] = 0.0
+
+
+def selected_primary_changes(vs):
+    changes = {
+        name: np.zeros_like(data[..., 0])
+        for name, data in vs.npzd_tracers.items()
+    }
+    for rule in vs.npzd_rules:
+        output = rule.function(vs, rule.source, rule.sink)
+        for name, value in output.items():
+            if isinstance(rule.boundary, tuple):
+                changes[name][rule.boundary] += value
+            else:
+                changes[name] += value * rule.boundary
+    return changes
+
+
+def test_selected_excretion_behavior_closes_phosphorus_and_carbon_budgets():
     vs = make_npzd_state()
-    assert vs.npzd_selected_rule_names.count("npzd_basic_zooplankton_excretion") == 1
-    assert vs.npzd_selected_rule_names.count("npzd_carbon_excretion_dic") == 1
-    assert "npzd_basic_zooplankton_excretion_DIC" not in vs.npzd_available_rules
-
+    zero_process_rates(vs)
     vs.excretion_total[...] = 0.2
-    basic = vs.npzd_available_rules["npzd_basic_zooplankton_excretion"]
-    carbon = vs.npzd_available_rules["npzd_carbon_excretion_dic"]
-    basic_change = basic.function(vs, basic.source, basic.sink)
-    carbon_change = carbon.function(vs, carbon.source, carbon.sink)
 
-    np.testing.assert_allclose(basic_change["zooplankton"], -0.2)
+    changes = selected_primary_changes(vs)
+    wet_cell = (2, 2, -1)
+
+    np.testing.assert_allclose(changes["zooplankton"][wet_cell], -0.2)
     np.testing.assert_allclose(
-        basic_change["po4"],
+        changes["po4"][wet_cell],
         vs.redfield_ratio_PN * 0.2,
     )
+    np.testing.assert_allclose(changes["DIC"][wet_cell], 1.42)
     np.testing.assert_allclose(
-        vs.redfield_ratio_CN * basic_change["zooplankton"]
-        + carbon_change["DIC"],
+        vs.redfield_ratio_CN * changes["zooplankton"][wet_cell]
+        + changes["DIC"][wet_cell],
         0.0,
         rtol=0.0,
         atol=1e-14,
@@ -591,10 +620,10 @@ def test_active_excretion_rule_closes_phosphorus_and_carbon_budgets():
 Run:
 
 ```bash
-.venv/bin/python -m pytest test/test_npzd_mobi_parity.py::test_active_excretion_rule_closes_phosphorus_and_carbon_budgets -q
+.venv/bin/python -m pytest test/test_npzd_mobi_parity.py::test_selected_excretion_behavior_closes_phosphorus_and_carbon_budgets -q
 ```
 
-Expected: FAIL because `npzd_basic_zooplankton_excretion` is not selected and the generated DIC variant still exists.
+Expected: FAIL because selected behavior adds `1.42` DIC without subtracting zooplankton or returning PO4, so the carbon budget does not close.
 
 - [ ] **Step 3: Register excretion directly in the basic group**
 
@@ -613,11 +642,11 @@ Add `'npzd_basic_zooplankton_excretion'` exactly once to `group_npzd_basic`. Rem
 Run:
 
 ```bash
-.venv/bin/python -m pytest test/test_npzd_mobi_parity.py::test_active_excretion_rule_closes_phosphorus_and_carbon_budgets -q
+.venv/bin/python -m pytest test/test_npzd_mobi_parity.py::test_selected_excretion_behavior_closes_phosphorus_and_carbon_budgets -q
 .venv/bin/python -m pytest test/test_npzd_regressions.py -q
 ```
 
-Expected: the carbon budget closes exactly and all existing tests pass.
+Expected: selected-rule behavior returns the literal zooplankton, PO4, and DIC changes exactly once; the carbon budget closes and all existing tests pass.
 
 - [ ] **Step 5: Commit the excretion correction**
 
@@ -644,56 +673,103 @@ git commit -m "fix: close zooplankton excretion budgets"
 Append to `test/test_npzd_mobi_parity.py`:
 
 ```python
+import pytest
+
 from veros_bgc.core import atmospherefluxes
-from veros_bgc.core.npzd_rules import co2_surface_flux
 
 
-def rule_change(vs, name):
-    rule = vs.npzd_available_rules[name]
-    return rule.function(vs, rule.source, rule.sink)
+def apply_rule_output(tracers, rule, output):
+    for name, value in output.items():
+        if isinstance(rule.boundary, tuple):
+            tracers[name][rule.boundary] += value
+        else:
+            tracers[name] += value * rule.boundary
 
 
-def test_organic_alkalinity_is_process_local_and_opposite_to_dic():
+def selected_rule_changes(vs, include_pre=False):
+    original = {
+        name: data[..., vs.tau].copy()
+        for name, data in vs.npzd_tracers.items()
+    }
+    for name, values in original.items():
+        vs.temporary_tracers[name][...] = values
+
+    if include_pre:
+        for rule in vs.npzd_pre_rules:
+            output = rule.function(vs, rule.source, rule.sink)
+            apply_rule_output(vs.temporary_tracers, rule, output)
+
+    for rule in vs.npzd_rules:
+        output = rule.function(vs, rule.source, rule.sink)
+        apply_rule_output(vs.temporary_tracers, rule, output)
+
+    for rule in vs.npzd_post_rules:
+        output = rule.function(vs, rule.source, rule.sink)
+        apply_rule_output(vs.temporary_tracers, rule, output)
+
+    return {
+        name: vs.temporary_tracers[name] - values
+        for name, values in original.items()
+    }
+
+
+@pytest.mark.parametrize(
+    "process,value,expected_dic,expected_alkalinity",
+    [
+        ("primary_production", 2.0, -14.2, 2.0),
+        ("detritus_recycling", 3.0, 21.3, -3.0),
+        ("phytoplankton_recycling", 4.0, 28.4, -4.0),
+        ("excretion", 5.0, 35.5, -5.0),
+        ("bottom_remineralization", 6.0, 42.6, -6.0),
+    ],
+)
+def test_selected_organic_processes_have_mobi_alkalinity_stoichiometry(
+        process, value, expected_dic, expected_alkalinity):
     vs = make_npzd_state()
-    vs.net_primary_production["phytoplankton"][...] = 2.0
-    vs.recycled["detritus"][...] = 3.0
-    vs.recycled["phytoplankton"][...] = 4.0
-    vs.excretion_total[...] = 5.0
-    vs.npzd_export["detritus"][...] = 6.0
+    zero_process_rates(vs)
 
+    if process == "primary_production":
+        vs.net_primary_production["phytoplankton"][...] = value
+    elif process == "detritus_recycling":
+        vs.recycled["detritus"][...] = value
+    elif process == "phytoplankton_recycling":
+        vs.recycled["phytoplankton"][...] = value
+    elif process == "excretion":
+        vs.excretion_total[...] = value
+    elif process == "bottom_remineralization":
+        vs.npzd_export["detritus"][...] = value
+
+    changes = selected_rule_changes(vs)
+    if process == "bottom_remineralization":
+        cell = (2, 2, KBOT[0, 0] - 1)
+    else:
+        cell = (2, 2, -1)
+
+    np.testing.assert_allclose(changes["DIC"][cell], expected_dic)
     np.testing.assert_allclose(
-        rule_change(vs, "npzd_carbon_primary_production_alk")["alkalinity"],
-        2.0,
-    )
-    np.testing.assert_allclose(
-        rule_change(vs, "npzd_carbon_recycling_detritus_alk")["alkalinity"],
-        -3.0,
-    )
-    np.testing.assert_allclose(
-        rule_change(vs, "npzd_carbon_recycling_phyto_alk")["alkalinity"],
-        -4.0,
-    )
-    np.testing.assert_allclose(
-        rule_change(vs, "npzd_carbon_excretion_alk")["alkalinity"],
-        -5.0,
-    )
-    np.testing.assert_allclose(
-        rule_change(vs, "npzd_carbon_detritus_bottom_remineralization_alk")["alkalinity"],
-        -6.0 * vs.bottom_mask,
+        changes["alkalinity"][cell],
+        expected_alkalinity,
     )
 
-    carbon_group = vs.npzd_available_rules["group_carbon_implicit_caco3"]
-    assert "npzd_carbon_dic_alk" not in carbon_group
 
-
-def test_atmospheric_co2_flux_has_no_alkalinity_tendency(monkeypatch):
+def test_selected_atmospheric_flux_changes_dic_but_not_alkalinity(monkeypatch):
     vs = make_npzd_state()
+    zero_process_rates(vs)
     vs.cflux[...] = 2.0
-    monkeypatch.setattr(atmospherefluxes, "carbon_flux", lambda state: state.cflux)
+    monkeypatch.setattr(
+        atmospherefluxes,
+        "carbon_flux",
+        lambda state: state.cflux,
+    )
 
-    change = co2_surface_flux(vs, "co2", "DIC")
+    changes = selected_rule_changes(vs, include_pre=True)
+    surface_cell = (2, 2, -1)
 
-    assert set(change) == {"DIC"}
+    np.testing.assert_allclose(
+        changes["DIC"][surface_cell],
+        2.0 * vs.dt_tracer / vs.dzt[-1],
+    )
+    np.testing.assert_allclose(changes["alkalinity"][surface_cell], 0.0)
 ```
 
 - [ ] **Step 2: Run the alkalinity tests and verify RED**
@@ -701,10 +777,10 @@ def test_atmospheric_co2_flux_has_no_alkalinity_tendency(monkeypatch):
 Run:
 
 ```bash
-.venv/bin/python -m pytest test/test_npzd_mobi_parity.py::test_organic_alkalinity_is_process_local_and_opposite_to_dic test/test_npzd_mobi_parity.py::test_atmospheric_co2_flux_has_no_alkalinity_tendency -q
+.venv/bin/python -m pytest test/test_npzd_mobi_parity.py::test_selected_organic_processes_have_mobi_alkalinity_stoichiometry test/test_npzd_mobi_parity.py::test_selected_atmospheric_flux_changes_dic_but_not_alkalinity -q
 ```
 
-Expected: the process-local test fails because the named rules do not exist and the broad `npzd_carbon_dic_alk` post-rule remains active; the already-correct gas-isolation assertion passes.
+Expected: all organic cases report the wrong alkalinity sign, and the atmospheric-flux case reports a nonzero alkalinity tendency because the broad `npzd_carbon_dic_alk` post-rule consumes total DIC change.
 
 - [ ] **Step 3: Implement explicit organic alkalinity functions**
 
