@@ -165,9 +165,27 @@ def co2_surface_flux(vs, co2, dic):
 
 
 @veros_method(inline=True)
-def dic_alk_scale(vs, DIC, alkalinity):
-    """Redistribute change in DIC as change in alkalinity"""
-    return {alkalinity: (vs.temporary_tracers[DIC] - vs.npzd_tracers[DIC][:, :, :, vs.tau]) / vs.redfield_ratio_CN}
+def primary_production_alk(vs, plankton, alkalinity):
+    """Increase alkalinity by organic nitrogen uptake."""
+    return {alkalinity: vs.net_primary_production[plankton]}
+
+
+@veros_method(inline=True)
+def recycling_alk(vs, plankton, alkalinity):
+    """Decrease alkalinity when organic matter returns DIC."""
+    return {alkalinity: -vs.recycled[plankton]}
+
+
+@veros_method(inline=True)
+def excretion_alk(vs, zooplankton, alkalinity):
+    """Decrease alkalinity by the organic excretion return."""
+    return {alkalinity: -vs.excretion_total}
+
+
+@veros_method(inline=True)
+def bottom_remineralization_alk(vs, source, alkalinity):
+    """Decrease alkalinity where exported organic matter remineralizes."""
+    return {alkalinity: -vs.npzd_export[source] * vs.bottom_mask}
 
 
 @veros_method(inline=True)

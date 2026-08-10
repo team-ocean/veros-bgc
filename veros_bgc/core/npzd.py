@@ -538,7 +538,8 @@ def setup_carbon_npzd_rules(vs):
     # The actual action is on DIC, but the to variables overlap
     from .npzd_rules import co2_surface_flux, recycling_to_dic, \
         primary_production_from_DIC, excretion_dic, recycling_phyto_to_dic, \
-        dic_alk_scale, calcite_production_phyto, calcite_production_phyto_alk, \
+        primary_production_alk, recycling_alk, excretion_alk, \
+        bottom_remineralization_alk, calcite_production_phyto, calcite_production_phyto_alk, \
         post_redistribute_calcite, post_redistribute_calcite_alk, pre_reset_calcite, \
         bottom_remineralization_detritus_DIC
 
@@ -588,6 +589,18 @@ def setup_carbon_npzd_rules(vs):
     register_npzd_rule(vs, 'npzd_carbon_excretion_dic',
                        (excretion_dic, 'zooplankton', 'DIC'),
                        label='Excretion')
+    register_npzd_rule(vs, 'npzd_carbon_primary_production_alk',
+                       (primary_production_alk, 'phytoplankton', 'alkalinity'),
+                       label='Primary production')
+    register_npzd_rule(vs, 'npzd_carbon_recycling_detritus_alk',
+                       (recycling_alk, 'detritus', 'alkalinity'),
+                       label='Remineralization')
+    register_npzd_rule(vs, 'npzd_carbon_recycling_phyto_alk',
+                       (recycling_alk, 'phytoplankton', 'alkalinity'),
+                       label='Fast recycling')
+    register_npzd_rule(vs, 'npzd_carbon_excretion_alk',
+                       (excretion_alk, 'zooplankton', 'alkalinity'),
+                       label='Excretion')
     register_npzd_rule(vs, 'npzd_carbon_calcite_production_dic',
                        (calcite_production_phyto, 'DIC', 'caco3'),
                        label='Production of calcite')
@@ -599,12 +612,11 @@ def setup_carbon_npzd_rules(vs):
     register_npzd_rule(vs, 'npzd_carbon_detritus_bottom_remineralization',
                        (bottom_remineralization_detritus_DIC, 'detritus', 'DIC'),
                        label='Bottom remineralization', boundary='BOTTOM')
+    register_npzd_rule(vs, 'npzd_carbon_detritus_bottom_remineralization_alk',
+                       (bottom_remineralization_alk, 'detritus', 'alkalinity'),
+                       label='Bottom remineralization', boundary='BOTTOM')
 
     # POST rules
-    register_npzd_rule(vs, 'npzd_carbon_dic_alk',
-                       (dic_alk_scale, 'DIC', 'alkalinity'),
-                       group='POST',
-                       label='Changes in DIC reflected in ALK')
     register_npzd_rule(vs, 'npzd_carbon_post_distribute_calcite_alk',
                        (post_redistribute_calcite_alk, 'caco3', 'alkalinity'),
                        label='dissolution', group='POST')
@@ -623,7 +635,11 @@ def setup_carbon_npzd_rules(vs):
         'npzd_carbon_primary_production_dic',
         'npzd_carbon_recycling_phyto_dic',
         'npzd_carbon_excretion_dic',
-        'npzd_carbon_dic_alk',
+        'npzd_carbon_primary_production_alk',
+        'npzd_carbon_recycling_detritus_alk',
+        'npzd_carbon_recycling_phyto_alk',
+        'npzd_carbon_excretion_alk',
+        'npzd_carbon_detritus_bottom_remineralization_alk',
         'npzd_carbon_calcite_production_dic',
         'npzd_carbon_calcite_production_alk',
         'npzd_carbon_post_distribute_calcite_alk',
