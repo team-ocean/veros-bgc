@@ -10,6 +10,15 @@ from veros.core import diffusion, thermodynamics, utilities, isoneutral
 from veros.variables import allocate
 
 
+@veros_method(inline=True)
+def solar_declination(vs):
+    """Return MOBI solar declination for the current model time."""
+    return np.sin(
+        (np.mod(vs.time * time.SECONDS_TO_X['years'], 1) - 0.22)
+        * 2.0 * np.pi
+    ) * 0.4
+
+
 @veros_method
 def biogeochemistry(vs):
     """Control function for integration of biogeochemistry
@@ -63,9 +72,7 @@ def biogeochemistry(vs):
     swr[:, :] *= np.exp(-vs.light_attenuation_ice * icemask[:, :, np.newaxis])
 
     # declination and fraction of day with daylight
-    # 0.72 is fraction of year at aphelion
-    # 0.4 is scaling based on angle of rotation
-    declin = np.sin((np.mod(vs.time * time.SECONDS_TO_X['years'], 1) - 0.72) * 2.0 * np.pi) * 0.4
+    declin = solar_declination(vs)
     radian = 2 * np.pi / 360  # bohrium doesn't support np.radians, so this is faster
     rctheta = np.maximum(-1.5, np.minimum(1.5, vs.yt * radian - declin))
 
@@ -430,7 +437,7 @@ def setup_basic_npzd_rules(vs):
     """
     Setup rules for basic NPZD model including phosphate, detritus, phytoplankton and zooplankton
     """
-    from .npzd_rules import grazing, mortality, sloppy_feeding, recycling_to_po4, \
+    from .npzd_rules import excretion, grazing, mortality, sloppy_feeding, recycling_to_po4, \
         primary_production, empty_rule, \
         bottom_remineralization_detritus_po4
 
@@ -490,6 +497,9 @@ def setup_basic_npzd_rules(vs):
     register_npzd_rule(vs, 'npzd_basic_zooplankton_grazing',
                        (empty_rule, 'zooplankton', 'zooplankton'),
                        label='Grazing')
+    register_npzd_rule(vs, 'npzd_basic_zooplankton_excretion',
+                       (excretion, 'zooplankton', 'po4'),
+                       label='Excretion')
     register_npzd_rule(vs, 'npzd_basic_zooplankton_mortality',
                        (mortality, 'zooplankton', 'detritus'),
                        label='Mortality')
@@ -516,6 +526,7 @@ def setup_basic_npzd_rules(vs):
         'npzd_basic_phytoplankton_fast_recycling',
         'npzd_basic_phytoplankton_primary_production',
         'npzd_basic_zooplankton_grazing',
+        'npzd_basic_zooplankton_excretion',
         'npzd_basic_zooplankton_mortality',
         'npzd_basic_zooplankton_sloppy_feeding',
         'npzd_basic_detritus_remineralization',
@@ -534,7 +545,8 @@ def setup_carbon_npzd_rules(vs):
     # The actual action is on DIC, but the to variables overlap
     from .npzd_rules import co2_surface_flux, recycling_to_dic, \
         primary_production_from_DIC, excretion_dic, recycling_phyto_to_dic, \
-        dic_alk_scale, calcite_production_phyto, calcite_production_phyto_alk, \
+        primary_production_alk, recycling_alk, excretion_alk, \
+        bottom_remineralization_alk, calcite_production, calcite_production_alk, \
         post_redistribute_calcite, post_redistribute_calcite_alk, pre_reset_calcite, \
         bottom_remineralization_detritus_DIC
 
@@ -584,23 +596,34 @@ def setup_carbon_npzd_rules(vs):
     register_npzd_rule(vs, 'npzd_carbon_excretion_dic',
                        (excretion_dic, 'zooplankton', 'DIC'),
                        label='Excretion')
+    register_npzd_rule(vs, 'npzd_carbon_primary_production_alk',
+                       (primary_production_alk, 'phytoplankton', 'alkalinity'),
+                       label='Primary production')
+    register_npzd_rule(vs, 'npzd_carbon_recycling_detritus_alk',
+                       (recycling_alk, 'detritus', 'alkalinity'),
+                       label='Remineralization')
+    register_npzd_rule(vs, 'npzd_carbon_recycling_phyto_alk',
+                       (recycling_alk, 'phytoplankton', 'alkalinity'),
+                       label='Fast recycling')
+    register_npzd_rule(vs, 'npzd_carbon_excretion_alk',
+                       (excretion_alk, 'zooplankton', 'alkalinity'),
+                       label='Excretion')
     register_npzd_rule(vs, 'npzd_carbon_calcite_production_dic',
-                       (calcite_production_phyto, 'DIC', 'caco3'),
+                       (calcite_production, 'DIC', 'caco3'),
                        label='Production of calcite')
     register_npzd_rule(vs, 'npzd_carbon_calcite_production_alk',
-                       (calcite_production_phyto_alk, 'alkalinity', 'caco3'),
+                       (calcite_production_alk, 'alkalinity', 'caco3'),
                        label='Production of calcite')
 
     # BOTTOM
     register_npzd_rule(vs, 'npzd_carbon_detritus_bottom_remineralization',
                        (bottom_remineralization_detritus_DIC, 'detritus', 'DIC'),
                        label='Bottom remineralization', boundary='BOTTOM')
+    register_npzd_rule(vs, 'npzd_carbon_detritus_bottom_remineralization_alk',
+                       (bottom_remineralization_alk, 'detritus', 'alkalinity'),
+                       label='Bottom remineralization', boundary='BOTTOM')
 
     # POST rules
-    register_npzd_rule(vs, 'npzd_carbon_dic_alk',
-                       (dic_alk_scale, 'DIC', 'alkalinity'),
-                       group='POST',
-                       label='Changes in DIC reflected in ALK')
     register_npzd_rule(vs, 'npzd_carbon_post_distribute_calcite_alk',
                        (post_redistribute_calcite_alk, 'caco3', 'alkalinity'),
                        label='dissolution', group='POST')
@@ -619,7 +642,11 @@ def setup_carbon_npzd_rules(vs):
         'npzd_carbon_primary_production_dic',
         'npzd_carbon_recycling_phyto_dic',
         'npzd_carbon_excretion_dic',
-        'npzd_carbon_dic_alk',
+        'npzd_carbon_primary_production_alk',
+        'npzd_carbon_recycling_detritus_alk',
+        'npzd_carbon_recycling_phyto_alk',
+        'npzd_carbon_excretion_alk',
+        'npzd_carbon_detritus_bottom_remineralization_alk',
         'npzd_carbon_calcite_production_dic',
         'npzd_carbon_calcite_production_alk',
         'npzd_carbon_post_distribute_calcite_alk',
@@ -640,15 +667,6 @@ def setupNPZD(vs):
     # Add carbon to the model
     if vs.enable_carbon:
         setup_carbon_npzd_rules(vs)
-
-    from .npzd_rules import excretion
-    register_npzd_common_source_rule(vs, 'npzd_basic_zooplankton_excretion',
-                                     (excretion, 'zooplankton', 'po4'),
-                                     label='Excretion')
-
-    register_npzd_common_source_rule(vs, 'npzd_basic_zooplankton_excretion',
-                                     (excretion, 'zooplankton', 'DIC'),
-                                     label='Excretion')
 
     # Turn common source rules into selectable rules
     # We should not have to make this check, it should just be defined

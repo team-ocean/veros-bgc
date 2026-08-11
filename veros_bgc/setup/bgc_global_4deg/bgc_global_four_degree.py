@@ -36,7 +36,7 @@ class GlobalFourDegreeBGC(VerosSetup):
         vs.nx, vs.ny, vs.nz = 90, 40, 15
         vs.dt_mom = 1800.0
         vs.dt_tracer = 86400.0
-        vs.dt_bio = vs.dt_tracer // 4
+        vs.dt_bio = vs.dt_tracer // 8
         vs.runlen = 0.
 
         vs.trcmin = 0
@@ -60,7 +60,7 @@ class GlobalFourDegreeBGC(VerosSetup):
         vs.wd0 = 2 / 86400
         vs.mwz = 1000
         vs.mw = 0.02 / 86400
-        vs.dcaco3 = 2500
+        vs.dcaco3 = 6500
 
         vs.coord_degree = True
         vs.enable_cyclic_x = True
