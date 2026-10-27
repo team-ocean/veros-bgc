@@ -1,6 +1,11 @@
 # built docs
 doc/_build
 
+# Local development notes and investigation reports
+/docs/
+/BUG_ANALYSIS_3860c6d.md
+/MOBI_VEROS_BGC_DIVERGENCE_ANALYSIS.md
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
